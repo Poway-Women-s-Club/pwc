@@ -1,0 +1,43 @@
+# Poway Woman's Club — Frontend
+# --------------------------------
+
+title: Poway Woman's Club
+description: "Serving the Poway community since 1960 — scholarships, arts, civic engagement, and more."
+owner_name: P4Codemaxxers
+github_username: EvanSvetina
+github_repo: "wc-FE"
+baseurl: "/wc-FE"
+future: true
+
+# Build settings
+incremental: true
+
+remote_theme: jekyll/minima
+plugins:
+  - jekyll-remote-theme
+  - jekyll-include-cache
+
+# Minima theme config
+minima:
+  skin: dark
+  social_links:
+    - { platform: github, user_url: "https://github.com/P4CodeMaxxers/wc-FE" }
+  nav_pages:
+    - navigation/about.md
+    - navigation/events.md
+    - navigation/blog.md
+    - navigation/contact.md
+
+exclude:
+  - venv
+  - venv/**
+  - vendor
+  - vendor/**
+  - vendor/bundle
+  - vendor/bundle/**
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - tmp
+  - log
+  - README.md
