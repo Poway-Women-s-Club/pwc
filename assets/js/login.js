@@ -155,8 +155,8 @@
     toggle.addEventListener('click', function () {
       var isHidden = input.type === 'password';
       input.type = isHidden ? 'text' : 'password';
-      toggle.textContent = isHidden ? '🙈' : '👁';
-      toggle.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+      toggle.textContent = isHidden ? 'Hide' : 'Show';
+      toggle.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password'); toggle.style.fontSize = '0.75rem'; toggle.style.fontWeight = '700';
     });
   }
 

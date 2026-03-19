@@ -7,148 +7,224 @@ show_reading_time: false
 
 <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/profile.css">
 
+<!-- AUTH GATE -->
 <div id="pwc-auth-gate" class="pwc-gate">
   <div class="pwc-gate-card">
-    <div class="pwc-gate-icon">🔒</div>
+    
     <h2>Member Area</h2>
     <p>Please log in to view your profile.</p>
     <a href="{{ site.baseurl }}/navigation/login" class="pwc-btn pwc-btn-fill">Go to Login</a>
   </div>
 </div>
 
-<div id="pwc-profile-app" class="pwc-profile-wrap" style="display:none;">
+<!-- MAIN APP -->
+<div id="pwc-profile-app" style="display:none;">
 
-  <!-- Sidebar -->
-  <aside class="pwc-sidebar">
-    <div class="pwc-avatar-ring">
-      <div class="pwc-avatar" id="avatarInitials">—</div>
+  <!-- TOP NAV BAR -->
+  <nav class="pwc-topbar">
+    <div class="pwc-topbar-brand">PWC</div>
+    <div class="pwc-topbar-tabs">
+      <button class="pwc-topbar-tab active" data-view="profile">
+        Profile
+      </button>
+      <button class="pwc-topbar-tab" data-view="messages">
+        Messages
+        <span class="pwc-topbar-badge" id="unreadBadge" style="display:none;">0</span>
+      </button>
     </div>
-    <div class="pwc-sidebar-name" id="sidebarName">Loading…</div>
-    <div class="pwc-sidebar-email" id="sidebarEmail"></div>
+    <div class="pwc-topbar-user">
+      <span id="topbarName"></span>
+      <div class="pwc-topbar-avatar" id="topbarAvatar">—</div>
+    </div>
+  </nav>
 
-    <nav class="pwc-sidenav">
-      <button class="pwc-sidenav-btn active" data-tab="overview">Overview</button>
-      <button class="pwc-sidenav-btn" data-tab="edit">Edit Profile</button>
-      <button class="pwc-sidenav-btn" data-tab="security">Security</button>
-    </nav>
+  <!-- ═══════════════════════════════════════ -->
+  <!-- VIEW: PROFILE                           -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="pwc-view pwc-view--profile active" id="view-profile">
+    <div class="pwc-profile-wrap">
 
-    <button class="pwc-logout-btn" id="logoutBtn">Sign Out</button>
-  </aside>
-
-  <!-- Main content -->
-  <main class="pwc-main">
-
-    <!-- OVERVIEW TAB -->
-    <section class="pwc-tab active" id="tab-overview">
-      <div class="pwc-tab-header">
-        <h1>My Profile</h1>
-        <hr class="pwc-rule">
-      </div>
-
-      <div class="pwc-overview-grid">
-        <div class="pwc-info-card">
-          <span class="pwc-info-label">Full Name</span>
-          <span class="pwc-info-value" id="ov-name">—</span>
+      <!-- Sidebar -->
+      <aside class="pwc-sidebar">
+        <div class="pwc-avatar-ring">
+          <div class="pwc-avatar" id="avatarInitials">—</div>
         </div>
-        <div class="pwc-info-card">
-          <span class="pwc-info-label">Email</span>
-          <span class="pwc-info-value" id="ov-email">—</span>
-        </div>
-        <div class="pwc-info-card pwc-info-card--wide">
-          <span class="pwc-info-label">Bio</span>
-          <span class="pwc-info-value" id="ov-bio">—</span>
-        </div>
-        <div class="pwc-info-card">
-          <span class="pwc-info-label">Languages Spoken</span>
-          <div class="pwc-tag-list" id="ov-languages"></div>
-        </div>
-        <div class="pwc-info-card">
-          <span class="pwc-info-label">Interests</span>
-          <div class="pwc-tag-list" id="ov-interests"></div>
-        </div>
-      </div>
-    </section>
+        <div class="pwc-sidebar-name" id="sidebarName">Loading…</div>
+        <div class="pwc-sidebar-email" id="sidebarEmail"></div>
 
-    <!-- EDIT TAB -->
-    <section class="pwc-tab" id="tab-edit">
-      <div class="pwc-tab-header">
-        <h1>Edit Profile</h1>
-        <hr class="pwc-rule">
-      </div>
+        <nav class="pwc-sidenav">
+          <button class="pwc-sidenav-btn active" data-tab="overview">Overview</button>
+          <button class="pwc-sidenav-btn" data-tab="edit">Edit Profile</button>
+          <button class="pwc-sidenav-btn" data-tab="security">Security</button>
+        </nav>
 
-      <form class="pwc-form" id="profileForm" onsubmit="return false;">
-        <div class="pwc-form-row">
-          <div class="pwc-form-group">
-            <label for="firstName">First Name</label>
-            <input type="text" id="firstName" placeholder="Jane" autocomplete="given-name">
+        <button class="pwc-logout-btn" id="logoutBtn">Sign Out</button>
+      </aside>
+
+      <!-- Main content -->
+      <main class="pwc-main">
+
+        <!-- OVERVIEW TAB -->
+        <section class="pwc-tab active" id="tab-overview">
+          <div class="pwc-tab-header">
+            <h1>My Profile</h1>
+            <hr class="pwc-rule">
           </div>
-          <div class="pwc-form-group">
-            <label for="lastName">Last Name</label>
-            <input type="text" id="lastName" placeholder="Doe" autocomplete="family-name">
+          <div class="pwc-overview-grid">
+            <div class="pwc-info-card">
+              <span class="pwc-info-label">Full Name</span>
+              <span class="pwc-info-value" id="ov-name">—</span>
+            </div>
+            <div class="pwc-info-card">
+              <span class="pwc-info-label">Email</span>
+              <span class="pwc-info-value" id="ov-email">—</span>
+            </div>
+            <div class="pwc-info-card pwc-info-card--wide">
+              <span class="pwc-info-label">Bio</span>
+              <span class="pwc-info-value" id="ov-bio">—</span>
+            </div>
+            <div class="pwc-info-card">
+              <span class="pwc-info-label">Languages Spoken</span>
+              <div class="pwc-tag-list" id="ov-languages"></div>
+            </div>
+            <div class="pwc-info-card">
+              <span class="pwc-info-label">Interests</span>
+              <div class="pwc-tag-list" id="ov-interests"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- EDIT TAB -->
+        <section class="pwc-tab" id="tab-edit">
+          <div class="pwc-tab-header">
+            <h1>Edit Profile</h1>
+            <hr class="pwc-rule">
+          </div>
+          <form class="pwc-form" id="profileForm" onsubmit="return false;">
+            <div class="pwc-form-row">
+              <div class="pwc-form-group">
+                <label for="firstName">First Name</label>
+                <input type="text" id="firstName" placeholder="Jane" autocomplete="given-name">
+              </div>
+              <div class="pwc-form-group">
+                <label for="lastName">Last Name</label>
+                <input type="text" id="lastName" placeholder="Doe" autocomplete="family-name">
+              </div>
+            </div>
+            <div class="pwc-form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" placeholder="jane@example.com" autocomplete="email">
+            </div>
+            <div class="pwc-form-group">
+              <label for="bio">Bio</label>
+              <textarea id="bio" rows="4" placeholder="Tell your fellow members a little about yourself…"></textarea>
+            </div>
+            <div class="pwc-form-group">
+              <label>Languages Spoken</label>
+              <div class="pwc-tag-input-wrap">
+                <div class="pwc-tag-chips" id="langChips"></div>
+                <input type="text" id="langInput" class="pwc-tag-input" placeholder="Type a language and press Enter">
+              </div>
+            </div>
+            <div class="pwc-form-group">
+              <label>Interests</label>
+              <div class="pwc-tag-input-wrap">
+                <div class="pwc-tag-chips" id="interestChips"></div>
+                <input type="text" id="interestInput" class="pwc-tag-input" placeholder="Type an interest and press Enter">
+              </div>
+            </div>
+            <div class="pwc-form-actions">
+              <span class="pwc-save-msg" id="saveMsg"></span>
+              <button type="button" class="pwc-btn pwc-btn-fill" id="saveBtn">Save Changes</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- SECURITY TAB -->
+        <section class="pwc-tab" id="tab-security">
+          <div class="pwc-tab-header">
+            <h1>Security</h1>
+            <hr class="pwc-rule">
+          </div>
+          <form class="pwc-form" onsubmit="return false;">
+            <div class="pwc-form-group">
+              <label for="currentPw">Current Password</label>
+              <input type="password" id="currentPw" placeholder="••••••••">
+            </div>
+            <div class="pwc-form-group">
+              <label for="newPw">New Password</label>
+              <input type="password" id="newPw" placeholder="••••••••">
+            </div>
+            <div class="pwc-form-group">
+              <label for="confirmPw">Confirm New Password</label>
+              <input type="password" id="confirmPw" placeholder="••••••••">
+            </div>
+            <div class="pwc-form-actions">
+              <span class="pwc-save-msg" id="pwMsg"></span>
+              <button type="button" class="pwc-btn pwc-btn-fill" id="changePwBtn">Update Password</button>
+            </div>
+          </form>
+        </section>
+
+      </main>
+    </div><!-- /.pwc-profile-wrap -->
+  </div><!-- /#view-profile -->
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- VIEW: MESSAGES                          -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="pwc-view pwc-view--messages" id="view-messages">
+    <div class="pwc-dm-layout">
+
+      <!-- Conversation list -->
+      <aside class="pwc-dm-sidebar">
+        <div class="pwc-dm-sidebar-header">
+          <h2>Messages</h2>
+        </div>
+        <div class="pwc-dm-search-wrap">
+          <input type="text" id="dmSearch" class="pwc-dm-search" placeholder="Search members…">
+        </div>
+        <ul class="pwc-dm-list" id="dmList">
+          <!-- Populated by JS -->
+        </ul>
+      </aside>
+
+      <!-- Chat panel -->
+      <div class="pwc-dm-chat" id="dmChat">
+
+        <!-- Empty state -->
+        <div class="pwc-dm-empty" id="dmEmpty">
+          
+          <p>Select a conversation to start messaging</p>
+        </div>
+
+        <!-- Active conversation (hidden until selected) -->
+        <div class="pwc-dm-convo" id="dmConvo" style="display:none;">
+          <div class="pwc-dm-convo-header">
+            <div class="pwc-dm-convo-avatar" id="convoAvatar">—</div>
+            <div>
+              <div class="pwc-dm-convo-name" id="convoName">—</div>
+              <div class="pwc-dm-convo-status" id="convoStatus">Member</div>
+            </div>
+          </div>
+
+          <div class="pwc-dm-messages" id="dmMessages"></div>
+
+          <div class="pwc-dm-composer">
+            <textarea
+              id="dmInput"
+              class="pwc-dm-input"
+              placeholder="Write a message…"
+              rows="1"
+            ></textarea>
+            <button class="pwc-dm-send" id="dmSend" type="button">Send</button>
           </div>
         </div>
 
-        <div class="pwc-form-group">
-          <label for="email">Email Address</label>
-          <input type="email" id="email" placeholder="jane@example.com" autocomplete="email">
-        </div>
+      </div><!-- /.pwc-dm-chat -->
+    </div><!-- /.pwc-dm-layout -->
+  </div><!-- /#view-messages -->
 
-        <div class="pwc-form-group">
-          <label for="bio">Bio</label>
-          <textarea id="bio" rows="4" placeholder="Tell your fellow members a little about yourself…"></textarea>
-        </div>
-
-        <div class="pwc-form-group">
-          <label>Languages Spoken</label>
-          <div class="pwc-tag-input-wrap">
-            <div class="pwc-tag-chips" id="langChips"></div>
-            <input type="text" id="langInput" class="pwc-tag-input" placeholder="Type a language and press Enter">
-          </div>
-        </div>
-
-        <div class="pwc-form-group">
-          <label>Interests</label>
-          <div class="pwc-tag-input-wrap">
-            <div class="pwc-tag-chips" id="interestChips"></div>
-            <input type="text" id="interestInput" class="pwc-tag-input" placeholder="Type an interest and press Enter">
-          </div>
-        </div>
-
-        <div class="pwc-form-actions">
-          <span class="pwc-save-msg" id="saveMsg"></span>
-          <button type="button" class="pwc-btn pwc-btn-fill" id="saveBtn">Save Changes</button>
-        </div>
-      </form>
-    </section>
-
-    <!-- SECURITY TAB -->
-    <section class="pwc-tab" id="tab-security">
-      <div class="pwc-tab-header">
-        <h1>Security</h1>
-        <hr class="pwc-rule">
-      </div>
-
-      <form class="pwc-form" onsubmit="return false;">
-        <div class="pwc-form-group">
-          <label for="currentPw">Current Password</label>
-          <input type="password" id="currentPw" placeholder="••••••••">
-        </div>
-        <div class="pwc-form-group">
-          <label for="newPw">New Password</label>
-          <input type="password" id="newPw" placeholder="••••••••">
-        </div>
-        <div class="pwc-form-group">
-          <label for="confirmPw">Confirm New Password</label>
-          <input type="password" id="confirmPw" placeholder="••••••••">
-        </div>
-        <div class="pwc-form-actions">
-          <span class="pwc-save-msg" id="pwMsg"></span>
-          <button type="button" class="pwc-btn pwc-btn-fill" id="changePwBtn">Update Password</button>
-        </div>
-      </form>
-    </section>
-
-  </main>
-</div>
+</div><!-- /#pwc-profile-app -->
 
 <script src="{{ site.baseurl }}/assets/js/profile.js"></script>
