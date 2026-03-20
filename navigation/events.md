@@ -38,12 +38,18 @@ show_reading_time: false
     <input type="hidden" name="event_title" id="pwc-rsvp-event-title" value="">
     <input type="hidden" name="event_datetime" id="pwc-rsvp-event-datetime" value="">
 
+    <!-- Logged-in banner (hidden by default, shown via JS) -->
+    <div id="pwc-rsvp-user-banner" class="pwc-rsvp-user-banner" hidden>
+      RSVPing as <strong id="pwc-rsvp-user-display"></strong>
+    </div>
+
     <div class="pwc-form-grid">
-      <label>
+      <!-- Name/email only shown for guests (hidden when logged in) -->
+      <label id="pwc-rsvp-name-label">
         Your name
         <input type="text" name="name" autocomplete="name" required>
       </label>
-      <label>
+      <label id="pwc-rsvp-email-label">
         Email
         <input type="email" name="email" autocomplete="email" required>
       </label>
@@ -341,7 +347,7 @@ show_reading_time: false
       if (el) el.value = value;
     }
 
-    function openRsvpModal(fcEvent) {
+    async function openRsvpModal(fcEvent) {
       var backdrop = $("pwc-rsvp-backdrop");
       var modal = $("pwc-rsvp-modal");
       if (!backdrop || !modal || !fcEvent) return;
@@ -366,6 +372,29 @@ show_reading_time: false
 
       var rsvpForm = $("pwc-rsvp-form");
       if (rsvpForm) rsvpForm.dataset.location = loc;
+
+      /* Hide name/email fields when logged in */
+      var me = await getCurrentUser();
+      var nameLabel = $("pwc-rsvp-name-label");
+      var emailLabel = $("pwc-rsvp-email-label");
+      var userBanner = $("pwc-rsvp-user-banner");
+      var userDisplay = $("pwc-rsvp-user-display");
+
+      if (me) {
+        if (nameLabel) { nameLabel.hidden = true; nameLabel.querySelector("input").removeAttribute("required"); }
+        if (emailLabel) { emailLabel.hidden = true; emailLabel.querySelector("input").removeAttribute("required"); }
+        if (userBanner) userBanner.hidden = false;
+        if (userDisplay) {
+          var displayName = (me.firstName || me.first_name || "");
+          if (displayName && (me.lastName || me.last_name || "")) displayName += " " + (me.lastName || me.last_name);
+          if (!displayName) displayName = me.username || me.email || "you";
+          userDisplay.textContent = displayName;
+        }
+      } else {
+        if (nameLabel) { nameLabel.hidden = false; nameLabel.querySelector("input").setAttribute("required", ""); }
+        if (emailLabel) { emailLabel.hidden = false; emailLabel.querySelector("input").setAttribute("required", ""); }
+        if (userBanner) userBanner.hidden = true;
+      }
 
       backdrop.hidden = false;
       modal.hidden = false;

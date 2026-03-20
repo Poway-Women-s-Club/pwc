@@ -701,8 +701,27 @@ code, pre {
   cursor: pointer;
 }
 
-.pwc-modal h3 { margin: 0 0 0.35rem; }
-.pwc-modal p   { margin: 0 0 0.75rem; color: rgba(255,255,255,0.82); }
+.pwc-modal h3 {
+  margin: 0 0 0.35rem;
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  color: #fff;
+}
+.pwc-modal p { margin: 0 0 0.75rem; color: rgba(255,255,255,0.82); }
+
+/* Logged-in RSVP banner */
+.pwc-rsvp-user-banner {
+  background: rgba(122,142,107,0.2);
+  border: 1px solid rgba(122,142,107,0.4);
+  border-radius: 8px;
+  padding: 0.5rem 0.85rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.9);
+}
+.pwc-rsvp-user-banner strong {
+  color: #fff;
+}
 
 /* Form grids (events modals) */
 .pwc-form-grid {
