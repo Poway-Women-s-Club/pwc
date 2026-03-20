@@ -1,21 +1,15 @@
 /**
  * login.js — Poway Woman's Club
  *
- * On successful login, writes the user object to sessionStorage.
- * profile.js reads this on the profile page to gate access and
- * pre-populate all fields.
+ * Handles sign-in and registration forms, both backed by the Flask API.
+ * On success, writes the user object to sessionStorage and redirects
+ * to the profile page.
  *
  * SESSION CONTRACT (must match profile.js):
  *   sessionStorage.setItem('pwc_user', JSON.stringify({
- *     username, firstName, lastName, email,
+ *     id, username, firstName, lastName, email, role,
  *     bio, languages[], interests[]
  *   }));
- *
- * ── DEMO MODE ──────────────────────────────────────────────────
- * Two hardcoded users are included so you can test end-to-end
- * without a backend. Replace attemptLogin() with a real fetch()
- * call when your auth API is ready.
- * ───────────────────────────────────────────────────────────────
  */
 
 (function () {
@@ -23,38 +17,9 @@
 
   /* ── Config ─────────────────────────────────────────────────── */
 
-  // Base URL — matches _config.yml baseurl
   var BASE = '/wc-FE';
-
-  // Backend API base URL (Flask server)
   var API_BASE_URL = (window.PWC_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
-
-  // Where to send the user after a successful login
   var REDIRECT_AFTER_LOGIN = BASE + '/navigation/profile';
-
-  /* ── Demo users (replace with real API call) ─────────────────── */
-  var DEMO_USERS = {
-    'member': {
-      username:  'member',
-      password:  'password123',
-      firstName: 'Jane',
-      lastName:  'Doe',
-      email:     'jane.doe@example.com',
-      bio:       '',
-      languages: ['English'],
-      interests: []
-    },
-    'admin': {
-      username:  'admin',
-      password:  'admin123',
-      firstName: 'Club',
-      lastName:  'Admin',
-      email:     'admin@powaywoman.org',
-      bio:       'Club administrator.',
-      languages: ['English', 'Spanish'],
-      interests: ['Arts', 'Civic Engagement']
-    }
-  };
 
   /* ── Helpers ─────────────────────────────────────────────────── */
 
@@ -64,132 +29,198 @@
     var a = el('loginAlert');
     a.textContent = msg;
     a.classList.add('visible');
+    var s = el('successAlert');
+    s.textContent = '';
+    s.classList.remove('visible');
   }
 
-  function hideAlert() {
+  function showSuccess(msg) {
+    var s = el('successAlert');
+    s.textContent = msg;
+    s.classList.add('visible');
     var a = el('loginAlert');
     a.textContent = '';
     a.classList.remove('visible');
   }
 
-  function setLoading(on) {
-    var btn = el('loginBtn');
-    btn.disabled = on;
-    btn.textContent = on ? 'Signing in…' : 'Sign In';
+  function hideAlerts() {
+    el('loginAlert').textContent = '';
+    el('loginAlert').classList.remove('visible');
+    el('successAlert').textContent = '';
+    el('successAlert').classList.remove('visible');
   }
 
-  /* ── Auth ────────────────────────────────────────────────────── */
+  function setLoading(btnId, on, label) {
+    var btn = el(btnId);
+    btn.disabled = on;
+    btn.textContent = on ? label + '…' : label;
+  }
 
-  /**
-   * attemptLogin(username, password)
-   * Returns a Promise that resolves with the user object on success,
-   * or rejects with an error message string on failure.
-   *
-   * SWAP THIS FUNCTION for a real fetch() when your backend is ready:
-   *
-   *   return fetch('/api/login', {
-   *     method: 'POST',
-   *     headers: { 'Content-Type': 'application/json' },
-   *     body: JSON.stringify({ username, password })
-   *   }).then(function(res) {
-   *     if (!res.ok) throw new Error('Invalid username or password.');
-   *     return res.json();
-   *   });
-   */
-  function attemptLogin(username, password) {
-    return fetch(API_BASE_URL + '/api/auth/login', {
+  /* ── Form toggling (Sign In ↔ Register) ────────────────────── */
+
+  function showLoginForm() {
+    el('loginForm').style.display = '';
+    el('registerForm').style.display = 'none';
+    el('formTitle').textContent = 'Member Login';
+    el('formSubtitle').textContent = "Poway Woman's Club — Members Area";
+    hideAlerts();
+  }
+
+  function showRegisterForm() {
+    el('loginForm').style.display = 'none';
+    el('registerForm').style.display = '';
+    el('formTitle').textContent = 'Create Account';
+    el('formSubtitle').textContent = 'Join the Poway Woman\'s Club';
+    hideAlerts();
+  }
+
+  el('showRegister').addEventListener('click', function (e) { e.preventDefault(); showRegisterForm(); });
+  el('showLogin').addEventListener('click', function (e) { e.preventDefault(); showLoginForm(); });
+
+  /* ── API helpers ────────────────────────────────────────────── */
+
+  function apiCall(endpoint, body) {
+    return fetch(API_BASE_URL + endpoint, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: username, password: password })
+      body: JSON.stringify(body)
     }).then(function (res) {
       return res.text().then(function (t) {
         var data = {};
         try { data = t ? JSON.parse(t) : {}; } catch (_) {}
         if (!res.ok) {
-          var msg = (data && data.error) ? data.error : 'Invalid username or password.';
-          throw new Error(msg);
+          throw new Error((data && data.error) || 'Something went wrong.');
         }
-        // Backend returns {id, username, email, role, ...}
-        var user = data || {};
-        var u = String(user.username || username || '');
-        var firstName = u;
-        var lastName = '';
-        if (u && u !== 'admin') {
-          var segs = u.split(/[\\._-]/);
-          firstName = segs[0] || u;
-          lastName = segs[1] || '';
-        }
-
-        // Map into the shape profile.js expects.
-        return {
-          username: user.username,
-          email: user.email,
-          role: user.role,
-          firstName: firstName,
-          lastName: lastName,
-          bio: user.bio || '',
-          languages: [],
-          interests: []
-        };
+        return data;
       });
     });
   }
+
+  function storeAndRedirect(user) {
+    // Store the user object from the backend directly — it's the source of truth
+    var session = {
+      id:        user.id,
+      username:  user.username,
+      email:     user.email,
+      role:      user.role,
+      firstName: user.firstName || '',
+      lastName:  user.lastName  || '',
+      bio:       user.bio       || '',
+      languages: user.languages || [],
+      interests: user.interests || []
+    };
+    sessionStorage.setItem('pwc_user', JSON.stringify(session));
+    window.location.href = REDIRECT_AFTER_LOGIN;
+  }
+
+  /* ── Login ──────────────────────────────────────────────────── */
 
   function doLogin() {
     var username = el('username').value.trim();
     var password = el('password').value;
 
-    hideAlert();
+    hideAlerts();
 
     if (!username || !password) {
       showAlert('Please enter your username and password.');
       return;
     }
 
-    setLoading(true);
+    setLoading('loginBtn', true, 'Signing in');
 
-    attemptLogin(username, password)
+    apiCall('/api/auth/login', { username: username, password: password })
       .then(function (user) {
-        // Merge any previously saved profile data (languages, interests, bio, etc.)
-        var saved = null;
-        try { saved = JSON.parse(localStorage.getItem('pwc_profile_' + user.username)); }
-        catch (_) {}
-        if (saved) { user = Object.assign({}, user, saved); }
-
-        // Write to sessionStorage — profile.js reads this
-        sessionStorage.setItem('pwc_user', JSON.stringify(user));
-
-        // Redirect to profile
-        window.location.href = REDIRECT_AFTER_LOGIN;
+        storeAndRedirect(user);
       })
-      .catch(function (msg) {
-        setLoading(false);
-        showAlert(msg);
+      .catch(function (err) {
+        setLoading('loginBtn', false, 'Sign In');
+        showAlert(err.message || err);
         el('password').value = '';
         el('password').focus();
       });
   }
 
+  /* ── Registration ───────────────────────────────────────────── */
+
+  function doRegister() {
+    var firstName = el('regFirstName').value.trim();
+    var lastName  = el('regLastName').value.trim();
+    var username  = el('regUsername').value.trim();
+    var email     = el('regEmail').value.trim();
+    var password  = el('regPassword').value;
+    var confirm   = el('regConfirm').value;
+
+    hideAlerts();
+
+    if (!firstName || !lastName) {
+      showAlert('Please enter your first and last name.');
+      return;
+    }
+    if (!username) {
+      showAlert('Please choose a username.');
+      return;
+    }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showAlert('Please enter a valid email address.');
+      return;
+    }
+    if (password.length < 6) {
+      showAlert('Password must be at least 6 characters.');
+      return;
+    }
+    if (password !== confirm) {
+      showAlert('Passwords do not match.');
+      return;
+    }
+
+    setLoading('registerBtn', true, 'Creating account');
+
+    apiCall('/api/auth/register', {
+      username: username,
+      email: email,
+      password: password
+    })
+    .then(function (user) {
+      // After registration, update the profile with first/last name
+      return fetch(API_BASE_URL + '/api/profile/me', {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ firstName: firstName, lastName: lastName })
+      }).then(function (res) {
+        return res.json();
+      }).then(function (updated) {
+        storeAndRedirect(updated);
+      });
+    })
+    .catch(function (err) {
+      setLoading('registerBtn', false, 'Create Account');
+      showAlert(err.message || err);
+    });
+  }
+
   /* ── Password show/hide ──────────────────────────────────────── */
 
-  function bindPasswordToggle() {
-    var toggle = el('pwToggle');
-    var input  = el('password');
+  function bindPasswordToggle(toggleId, inputId) {
+    var toggle = el(toggleId);
+    var input  = el(inputId);
     if (!toggle || !input) return;
-
     toggle.addEventListener('click', function () {
       var isHidden = input.type === 'password';
       input.type = isHidden ? 'text' : 'password';
       toggle.textContent = isHidden ? 'Hide' : 'Show';
-      toggle.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password'); toggle.style.fontSize = '0.75rem'; toggle.style.fontWeight = '700';
+      toggle.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+      toggle.style.fontSize = '0.75rem';
+      toggle.style.fontWeight = '700';
     });
   }
 
   /* ── has-content class for input styling ─────────────────────── */
 
   function bindInputStyling() {
-    ['username', 'password'].forEach(function (id) {
+    var ids = ['username', 'password', 'regFirstName', 'regLastName', 'regUsername', 'regEmail', 'regPassword', 'regConfirm'];
+    ids.forEach(function (id) {
       var input = el(id);
       if (!input) return;
       input.addEventListener('input', function () {
@@ -208,6 +239,13 @@
         if (e.key === 'Enter') { doLogin(); }
       });
     });
+    ['regFirstName', 'regLastName', 'regUsername', 'regEmail', 'regPassword', 'regConfirm'].forEach(function (id) {
+      var input = el(id);
+      if (!input) return;
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { doRegister(); }
+      });
+    });
   }
 
   /* ── Init ────────────────────────────────────────────────────── */
@@ -220,7 +258,9 @@
   } catch (_) {}
 
   el('loginBtn').addEventListener('click', doLogin);
-  bindPasswordToggle();
+  el('registerBtn').addEventListener('click', doRegister);
+  bindPasswordToggle('pwToggle', 'password');
+  bindPasswordToggle('regPwToggle', 'regPassword');
   bindInputStyling();
   bindEnterKey();
 

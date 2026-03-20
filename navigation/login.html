@@ -5,68 +5,99 @@ hide: true
 show_reading_time: false
 ---
 
-<link rel="stylesheet" href="{{ site.baseurl }}/assets/css/login.css">
-
 <div class="pwc-login-page">
   <div class="login-card">
 
     <!-- Brand -->
     <div class="login-brand">
       <div class="login-emblem">PWC</div>
-      <h1>Member Login</h1>
-      <p>Poway Woman's Club — Members Area</p>
+      <h1 id="formTitle">Member Login</h1>
+      <p id="formSubtitle">Poway Woman's Club — Members Area</p>
     </div>
 
     <hr class="login-divider">
 
     <!-- Alert -->
     <div class="login-alert" id="loginAlert" role="alert"></div>
+    <!-- Success alert (green) -->
+    <div class="login-alert login-alert--success" id="successAlert" role="status"></div>
 
-    <!-- Fields -->
-    <div class="login-fields">
-      <div class="login-field">
-        <label for="username">Username</label>
-        <input
-          class="form__input"
-          type="text"
-          id="username"
-          placeholder="your.username"
-          autocomplete="username"
-          autocapitalize="none"
-          spellcheck="false"
-        >
-      </div>
-
-      <div class="login-field">
-        <label for="password">Password</label>
-        <div class="login-pw-wrap">
-          <input
-            class="form__input"
-            type="password"
-            id="password"
-            placeholder="••••••••"
-            autocomplete="current-password"
-          >
-          <button class="login-pw-toggle" id="pwToggle" type="button" aria-label="Show password">Show</button>
+    <!-- ═══ SIGN IN FORM ═══ -->
+    <div id="loginForm">
+      <div class="login-fields">
+        <div class="login-field">
+          <label for="username">Username</label>
+          <input class="form__input" type="text" id="username" placeholder="your.username"
+                 autocomplete="username" autocapitalize="none" spellcheck="false">
+        </div>
+        <div class="login-field">
+          <label for="password">Password</label>
+          <div class="login-pw-wrap">
+            <input class="form__input" type="password" id="password" placeholder="••••••••"
+                   autocomplete="current-password">
+            <button class="login-pw-toggle" id="pwToggle" type="button" aria-label="Show password">Show</button>
+          </div>
         </div>
       </div>
+      <div class="login-actions">
+        <button class="btn btn__primary" id="loginBtn" type="button">Sign In</button>
+        <a class="btn btn__secondary" href="{{ site.baseurl }}/">← Back to Home</a>
+      </div>
+      <div class="login-back">
+        Don't have an account? <a href="#" id="showRegister">Create one</a>
+      </div>
     </div>
 
-    <!-- Actions -->
-    <div class="login-actions">
-      <button class="btn btn__primary" id="loginBtn" type="button">Sign In</button>
-      <a class="btn btn__secondary" href="{{ site.baseurl }}/">← Back to Home</a>
-    </div>
-
-    <div class="login-back">
-      Not a member? <a href="{{ site.baseurl }}/navigation/contact">Contact us to join</a>
+    <!-- ═══ REGISTER FORM ═══ -->
+    <div id="registerForm" style="display:none;">
+      <div class="login-fields">
+        <div class="login-field login-field--row">
+          <div class="login-field">
+            <label for="regFirstName">First Name</label>
+            <input class="form__input" type="text" id="regFirstName" placeholder="Jane" autocomplete="given-name">
+          </div>
+          <div class="login-field">
+            <label for="regLastName">Last Name</label>
+            <input class="form__input" type="text" id="regLastName" placeholder="Doe" autocomplete="family-name">
+          </div>
+        </div>
+        <div class="login-field">
+          <label for="regUsername">Username</label>
+          <input class="form__input" type="text" id="regUsername" placeholder="jane.doe"
+                 autocomplete="username" autocapitalize="none" spellcheck="false">
+        </div>
+        <div class="login-field">
+          <label for="regEmail">Email</label>
+          <input class="form__input" type="email" id="regEmail" placeholder="jane@example.com"
+                 autocomplete="email">
+        </div>
+        <div class="login-field">
+          <label for="regPassword">Password</label>
+          <div class="login-pw-wrap">
+            <input class="form__input" type="password" id="regPassword" placeholder="••••••••"
+                   autocomplete="new-password">
+            <button class="login-pw-toggle" id="regPwToggle" type="button" aria-label="Show password">Show</button>
+          </div>
+        </div>
+        <div class="login-field">
+          <label for="regConfirm">Confirm Password</label>
+          <input class="form__input" type="password" id="regConfirm" placeholder="••••••••"
+                 autocomplete="new-password">
+        </div>
+      </div>
+      <div class="login-actions">
+        <button class="btn btn__primary" id="registerBtn" type="button">Create Account</button>
+        <a class="btn btn__secondary" href="{{ site.baseurl }}/">← Back to Home</a>
+      </div>
+      <div class="login-back">
+        Already have an account? <a href="#" id="showLogin">Sign in</a>
+      </div>
     </div>
 
   </div>
 </div>
 
 <script>
-  // Used by assets/js/login.js to call the backend auth API.
   window.PWC_API_BASE_URL = "{{ site.events_api_base_url | escape }}";
 </script>
 <script src="{{ site.baseurl }}/assets/js/login.js"></script>

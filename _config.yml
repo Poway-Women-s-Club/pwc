@@ -10,7 +10,7 @@ baseurl: "/wc-FE"
 future: true
 
 # Build settings
-incremental: true
+incremental: false
 
 remote_theme: jekyll/minima
 plugins:
@@ -19,7 +19,6 @@ plugins:
 
 # Minima theme config
 minima:
-  skin: dark
   social_links:
     - { platform: github, user_url: "https://github.com/P4CodeMaxxers/wc-FE" }
   nav_pages:
