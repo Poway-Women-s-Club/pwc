@@ -2423,3 +2423,62 @@ code, pre {
 }
 
 /* Dark mode intentionally omitted — light-only design */
+
+/* ── Daily banner (index.md) ───────────────── */
+.pwc-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  padding: 0.55rem 1.5rem;
+  background: var(--pwc-white);
+  border-bottom: 1px solid var(--pwc-border);
+  min-height: 36px;
+}
+
+.pwc-banner-label {
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #a25d6e;  
+  color: var(--pwc-warm);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.pwc-banner-divider {
+  width: 1px;
+  height: 12px;
+  background: var(--pwc-border);
+  flex-shrink: 0;
+}
+
+.pwc-banner-text {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--pwc-text);
+  text-align: center;
+  line-height: 1.45;
+}
+
+.pwc-banner-attr {
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 0.72rem;
+  color: var(--pwc-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+  .pwc-banner { flex-direction: column; gap: 0.25rem; padding: 0.65rem 1rem; text-align: center; }
+  .pwc-banner-divider { display: none; }
+}
+
+@media (prefers-color-scheme: dark) {
+  .pwc-banner { background: #1a1618; border-color: #3a3438; }
+  .pwc-banner-text { color: #c4bcbe; }
+}
