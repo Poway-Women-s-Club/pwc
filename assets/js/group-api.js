@@ -33,46 +33,6 @@ var GroupAPI = (function () {
       });
   }
 
-  function getMyApplicationFlags() {
-    return fetch(API_BASE + "/my-applications", { credentials: "include" })
-      .then(function (r) {
-        if (!r.ok) return { pending_group_ids: [], denied_group_ids: [] };
-        return r.json();
-      });
-  }
-
-  function submitApplication(groupId, message) {
-    return fetch(API_BASE + "/" + groupId + "/applications", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: message || "" }),
-    }).then(function (r) {
-      if (!r.ok) return r.json().then(function (d) { throw new Error(d.error || "Failed"); });
-      return r.json();
-    });
-  }
-
-  function acceptApplication(groupId, applicationId) {
-    return fetch(API_BASE + "/" + groupId + "/applications/" + applicationId + "/accept", {
-      method: "POST",
-      credentials: "include",
-    }).then(function (r) {
-      if (!r.ok) return r.json().then(function (d) { throw new Error(d.error || "Failed"); });
-      return r.json();
-    });
-  }
-
-  function denyApplication(groupId, applicationId) {
-    return fetch(API_BASE + "/" + groupId + "/applications/" + applicationId + "/deny", {
-      method: "POST",
-      credentials: "include",
-    }).then(function (r) {
-      if (!r.ok) return r.json().then(function (d) { throw new Error(d.error || "Failed"); });
-      return r.json();
-    });
-  }
-
   function createGroup(name, description, requiresApplication) {
     return fetch(API_BASE + "/", {
       method: "POST",
@@ -134,19 +94,60 @@ var GroupAPI = (function () {
     });
   }
 
+  function submitApplication(groupId, message) {
+    return fetch(API_BASE + "/" + groupId + "/applications", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: message || "" }),
+    }).then(function (r) {
+      if (!r.ok) return r.json().then(function (d) { throw new Error(d.error || "Failed"); });
+      return r.json();
+    });
+  }
+
+  function getPendingApplications(groupId) {
+    return fetch(API_BASE + "/" + groupId + "/applications?status=pending", {
+      credentials: "include",
+    }).then(function (r) {
+      if (!r.ok) return r.json().then(function (d) { throw new Error(d.error || "Failed"); });
+      return r.json();
+    });
+  }
+
+  function approveApplication(groupId, applicationId) {
+    return fetch(
+      API_BASE + "/" + groupId + "/applications/" + applicationId + "/approve",
+      { method: "POST", credentials: "include" }
+    ).then(function (r) {
+      if (!r.ok) return r.json().then(function (d) { throw new Error(d.error || "Failed"); });
+      return r.json();
+    });
+  }
+
+  function denyApplication(groupId, applicationId) {
+    return fetch(
+      API_BASE + "/" + groupId + "/applications/" + applicationId + "/deny",
+      { method: "POST", credentials: "include" }
+    ).then(function (r) {
+      if (!r.ok) return r.json().then(function (d) { throw new Error(d.error || "Failed"); });
+      return r.json();
+    });
+  }
+
   return {
-    getGroups:              getGroups,
-    getGroup:               getGroup,
-    getMyGroups:            getMyGroups,
-    getMyApplicationFlags:  getMyApplicationFlags,
-    createGroup:            createGroup,
-    updateGroup:            updateGroup,
-    deleteGroup:            deleteGroup,
-    joinGroup:              joinGroup,
-    leaveGroup:             leaveGroup,
-    submitApplication:      submitApplication,
-    acceptApplication:      acceptApplication,
-    denyApplication:        denyApplication,
+    getGroups:             getGroups,
+    getGroup:              getGroup,
+    getMyGroups:           getMyGroups,
+    createGroup:           createGroup,
+    updateGroup:           updateGroup,
+    deleteGroup:           deleteGroup,
+    joinGroup:             joinGroup,
+    leaveGroup:            leaveGroup,
+    submitApplication:     submitApplication,
+    getPendingApplications: getPendingApplications,
+    approveApplication:    approveApplication,
+    denyApplication:       denyApplication,
   };
 
 })();

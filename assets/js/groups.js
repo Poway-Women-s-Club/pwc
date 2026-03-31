@@ -10,8 +10,6 @@ var Groups = (function () {
 
   var currentUser = null;
   var myGroupIds  = [];
-  var pendingApplicationGroupIds = [];
-  var deniedApplicationGroupIds  = [];
 
   /* ── Init ────────────────────────────────────────────────────────────── */
 
@@ -24,38 +22,11 @@ var Groups = (function () {
     GroupAPI.getMyGroups()
       .then(function (groups) {
         myGroupIds = groups.map(function (g) { return g.id; });
-        if (!currentUser) return;
-        return GroupAPI.getMyApplicationFlags()
-          .then(function (flags) {
-            pendingApplicationGroupIds = flags.pending_group_ids || [];
-            deniedApplicationGroupIds  = flags.denied_group_ids || [];
-          });
       })
-      .catch(function () {
-        myGroupIds = [];
-        pendingApplicationGroupIds = [];
-        deniedApplicationGroupIds  = [];
-      })
+      .catch(function () { myGroupIds = []; })
       .finally(function () {
         GroupRenderer.setCreateButton(!!currentUser);
         loadGroups();
-      });
-  }
-
-  function refreshApplicationFlags() {
-    if (!currentUser) {
-      pendingApplicationGroupIds = [];
-      deniedApplicationGroupIds  = [];
-      return Promise.resolve();
-    }
-    return GroupAPI.getMyApplicationFlags()
-      .then(function (flags) {
-        pendingApplicationGroupIds = flags.pending_group_ids || [];
-        deniedApplicationGroupIds  = flags.denied_group_ids || [];
-      })
-      .catch(function () {
-        pendingApplicationGroupIds = [];
-        deniedApplicationGroupIds  = [];
       });
   }
 
@@ -66,13 +37,7 @@ var Groups = (function () {
 
     GroupAPI.getGroups()
       .then(function (groups) {
-        GroupRenderer.renderGroups(
-          groups,
-          myGroupIds,
-          pendingApplicationGroupIds,
-          deniedApplicationGroupIds,
-          currentUser
-        );
+        GroupRenderer.renderGroups(groups, myGroupIds, currentUser);
       })
       .catch(function () {
         GroupRenderer.showError("Could not load groups. Is the backend running?");
@@ -81,25 +46,35 @@ var Groups = (function () {
 
   /* ── Single group detail ─────────────────────────────────────────────── */
 
-  function openGroup(id) {
-    var overlay = document.getElementById("groups-detail-overlay");
+  function loadGroupDetail(id) {
     GroupRenderer.showDetailLoading();
-    overlay.style.display       = "flex";
-    document.body.style.overflow = "hidden";
-
     GroupAPI.getGroup(id)
       .then(function (group) {
-        GroupRenderer.renderGroupDetail(
-          group,
-          myGroupIds,
-          pendingApplicationGroupIds,
-          deniedApplicationGroupIds,
-          currentUser
-        );
+        var isOwner = currentUser && currentUser.id === group.created_by;
+        var isAdmin = currentUser && currentUser.role === "admin";
+        if (isOwner || isAdmin) {
+          GroupAPI.getPendingApplications(id)
+            .then(function (apps) {
+              GroupRenderer.renderGroupDetail(group, myGroupIds, currentUser, apps);
+            })
+            .catch(function () {
+              GroupRenderer.renderGroupDetail(group, myGroupIds, currentUser, []);
+            });
+        } else {
+          GroupRenderer.renderGroupDetail(group, myGroupIds, currentUser, null);
+        }
       })
-      .catch(function ()     {
-        document.getElementById("groups-detail-content").innerHTML = '<div class="pwc-blog-empty">Could not load group.</div>';
+      .catch(function () {
+        document.getElementById("groups-detail-content").innerHTML =
+          '<div class="pwc-blog-empty">Could not load group.</div>';
       });
+  }
+
+  function openGroup(id) {
+    var overlay = document.getElementById("groups-detail-overlay");
+    overlay.style.display = "flex";
+    document.body.style.overflow = "hidden";
+    loadGroupDetail(id);
   }
 
   function hideDetail() {
@@ -119,31 +94,6 @@ var Groups = (function () {
       .catch(function (err) { alert(err.message); });
   }
 
-  function applyToGroup(id) {
-    var msgEl = document.getElementById("groups-apply-message");
-    var msg   = msgEl ? msgEl.value.trim() : "";
-    GroupAPI.submitApplication(id, msg)
-      .then(function () { return refreshApplicationFlags(); })
-      .then(function () {
-        loadGroups();
-        refreshDetailIfOpen(id);
-      })
-      .catch(function (err) { alert(err.message); });
-  }
-
-  function decideApplication(groupId, applicationId, accept) {
-    var call = accept
-      ? GroupAPI.acceptApplication(groupId, applicationId)
-      : GroupAPI.denyApplication(groupId, applicationId);
-    call
-      .then(function () { return refreshApplicationFlags(); })
-      .then(function () {
-        loadGroups();
-        refreshDetailIfOpen(groupId);
-      })
-      .catch(function (err) { alert(err.message); });
-  }
-
   function leaveGroup(id) {
     if (!confirm("Leave this group?")) return;
     GroupAPI.leaveGroup(id)
@@ -159,17 +109,7 @@ var Groups = (function () {
   function refreshDetailIfOpen(id) {
     var overlay = document.getElementById("groups-detail-overlay");
     if (overlay && overlay.style.display !== "none") {
-      GroupAPI.getGroup(id)
-        .then(function (group) {
-          GroupRenderer.renderGroupDetail(
-            group,
-            myGroupIds,
-            pendingApplicationGroupIds,
-            deniedApplicationGroupIds,
-            currentUser
-          );
-        })
-        .catch(function () {});
+      loadGroupDetail(id);
     }
   }
 
@@ -180,9 +120,10 @@ var Groups = (function () {
     document.getElementById("groups-edit-id").value             = "";
     document.getElementById("groups-name").value                = "";
     document.getElementById("groups-desc").value                = "";
-    document.getElementById("groups-membership-open").checked   = true;
-    document.getElementById("groups-membership-apply").checked  = false;
     document.getElementById("groups-submit-btn").textContent    = "Create Group";
+    document.getElementById("groups-join-open").checked         = true;
+    document.getElementById("groups-join-apply").checked        = false;
+    document.getElementById("groups-join-policy-heading").textContent = "How people join";
     document.getElementById("groups-compose-overlay").style.display = "flex";
     document.body.style.overflow = "hidden";
     document.getElementById("groups-name").focus();
@@ -194,10 +135,11 @@ var Groups = (function () {
       document.getElementById("groups-edit-id").value             = group.id;
       document.getElementById("groups-name").value                = group.name;
       document.getElementById("groups-desc").value                = group.description;
-      var req = !!group.requires_application;
-      document.getElementById("groups-membership-open").checked  = !req;
-      document.getElementById("groups-membership-apply").checked = req;
       document.getElementById("groups-submit-btn").textContent    = "Save Changes";
+      var req = !!group.requires_application;
+      document.getElementById("groups-join-open").checked  = !req;
+      document.getElementById("groups-join-apply").checked = req;
+      document.getElementById("groups-join-policy-heading").textContent = "How people join";
       document.getElementById("groups-compose-overlay").style.display = "flex";
       document.body.style.overflow = "hidden";
     });
@@ -213,16 +155,17 @@ var Groups = (function () {
     var editId = document.getElementById("groups-edit-id").value;
     var name   = document.getElementById("groups-name").value.trim();
     var desc   = document.getElementById("groups-desc").value.trim();
-    var requiresApplication = document.getElementById("groups-membership-apply").checked;
     if (!name) return;
+
+    var requiresApp = document.getElementById("groups-join-apply").checked;
 
     var btn = document.getElementById("groups-submit-btn");
     btn.disabled    = true;
     btn.textContent = "Saving...";
 
     var apiCall = editId
-      ? GroupAPI.updateGroup(editId, name, desc, requiresApplication)
-      : GroupAPI.createGroup(name, desc, requiresApplication);
+      ? GroupAPI.updateGroup(editId, name, desc, requiresApp)
+      : GroupAPI.createGroup(name, desc, requiresApp);
 
     apiCall
       .then(function (result) {
@@ -240,6 +183,67 @@ var Groups = (function () {
   }
 
   /* ── Delete ──────────────────────────────────────────────────────────── */
+
+  var applyGroupId = null;
+
+  function showApply(groupId) {
+    applyGroupId = groupId;
+    document.getElementById("groups-apply-message").value = "";
+    document.getElementById("groups-apply-overlay").style.display = "flex";
+    document.body.style.overflow = "hidden";
+    document.getElementById("groups-apply-message").focus();
+  }
+
+  function hideApply() {
+    applyGroupId = null;
+    document.getElementById("groups-apply-overlay").style.display = "none";
+    document.body.style.overflow = "";
+  }
+
+  function submitApply() {
+    if (!applyGroupId) return;
+    var gid = applyGroupId;
+    var btn = document.getElementById("groups-apply-submit");
+    var msg = document.getElementById("groups-apply-message").value.trim();
+    btn.disabled = true;
+    btn.textContent = "Submitting...";
+    GroupAPI.submitApplication(gid, msg)
+      .then(function () {
+        hideApply();
+        loadGroups();
+        refreshDetailIfOpen(gid);
+      })
+      .catch(function (err) {
+        alert(err.message);
+      })
+      .finally(function () {
+        btn.disabled = false;
+        btn.textContent = "Submit application";
+      });
+  }
+
+  function approveApplication(groupId, applicationId) {
+    GroupAPI.approveApplication(groupId, applicationId)
+      .then(function () {
+        loadGroups();
+        refreshDetailIfOpen(groupId);
+      })
+      .catch(function (err) {
+        alert(err.message);
+      });
+  }
+
+  function denyApplication(groupId, applicationId) {
+    if (!confirm("Deny this application?")) return;
+    GroupAPI.denyApplication(groupId, applicationId)
+      .then(function () {
+        loadGroups();
+        refreshDetailIfOpen(groupId);
+      })
+      .catch(function (err) {
+        alert(err.message);
+      });
+  }
 
   function deleteGroup(groupId) {
     if (!confirm("Delete this group? All members will be removed.")) return;
@@ -264,17 +268,20 @@ var Groups = (function () {
 
   /* Public API */
   return {
-    openGroup:   openGroup,
-    hideDetail:  hideDetail,
-    joinGroup:          joinGroup,
-    applyToGroup:       applyToGroup,
-    decideApplication:  decideApplication,
-    leaveGroup:         leaveGroup,
-    showCreate:  showCreate,
-    showEdit:    showEdit,
-    hideCompose: hideCompose,
-    submitGroup: submitGroup,
-    deleteGroup: deleteGroup,
+    openGroup:           openGroup,
+    hideDetail:          hideDetail,
+    joinGroup:           joinGroup,
+    leaveGroup:          leaveGroup,
+    showCreate:          showCreate,
+    showEdit:            showEdit,
+    hideCompose:         hideCompose,
+    submitGroup:         submitGroup,
+    deleteGroup:         deleteGroup,
+    showApply:           showApply,
+    hideApply:           hideApply,
+    submitApply:         submitApply,
+    approveApplication:  approveApplication,
+    denyApplication:     denyApplication,
   };
 
 })();

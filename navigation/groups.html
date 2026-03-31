@@ -39,22 +39,41 @@ permalink: /navigation/groups/
           <label for="groups-desc">Description</label>
           <textarea id="groups-desc" rows="4" placeholder="Describe what this group is about..."></textarea>
         </div>
-        <fieldset class="pwc-blog-field pwc-groups-membership-fieldset">
-          <legend class="pwc-groups-membership-legend">Who can join?</legend>
-          <label class="pwc-groups-membership-option">
-            <input type="radio" name="groups-membership" id="groups-membership-open" value="open" checked>
-            <span>Anyone can join</span>
+        <div class="pwc-blog-field pwc-groups-join-policy">
+          <span class="pwc-groups-join-policy-label" id="groups-join-policy-heading">How people join</span>
+          <label class="pwc-groups-radio-row">
+            <input type="radio" name="groups-join-type" value="open" id="groups-join-open" checked>
+            <span>Anyone can join (open group)</span>
           </label>
-          <label class="pwc-groups-membership-option">
-            <input type="radio" name="groups-membership" id="groups-membership-apply" value="apply">
-            <span>Members must apply — you approve who gets in</span>
+          <label class="pwc-groups-radio-row">
+            <input type="radio" name="groups-join-type" value="apply" id="groups-join-apply">
+            <span>Members must apply and be approved</span>
           </label>
-        </fieldset>
+        </div>
         <div class="pwc-blog-compose-actions">
           <button type="button" class="pwc-btn pwc-btn-muted" onclick="Groups.hideCompose()">Cancel</button>
           <button type="submit" class="pwc-btn pwc-btn-sage" id="groups-submit-btn">Create Group</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ── Apply to join overlay ── -->
+  <div id="groups-apply-overlay" class="pwc-blog-overlay" style="display:none;">
+    <div class="pwc-blog-compose-card">
+      <div class="pwc-blog-compose-header">
+        <h2>Apply to join</h2>
+        <button type="button" class="pwc-blog-close" onclick="Groups.hideApply()">&times;</button>
+      </div>
+      <p class="pwc-groups-apply-intro">Optionally tell the group organizers why you would like to join.</p>
+      <div class="pwc-blog-field">
+        <label for="groups-apply-message">Message <span class="pwc-groups-optional">(optional)</span></label>
+        <textarea id="groups-apply-message" rows="5" maxlength="2000" placeholder=""></textarea>
+      </div>
+      <div class="pwc-blog-compose-actions">
+        <button type="button" class="pwc-btn pwc-btn-muted" onclick="Groups.hideApply()">Cancel</button>
+        <button type="button" class="pwc-btn pwc-btn-sage" id="groups-apply-submit" onclick="Groups.submitApply()">Submit application</button>
+      </div>
     </div>
   </div>
 

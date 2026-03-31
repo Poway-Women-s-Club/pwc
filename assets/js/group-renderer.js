@@ -21,19 +21,42 @@ var GroupRenderer = (function () {
     return months[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
   }
 
-  function viewerApplicationStatus(group, groupId, isMember, pendingIds, deniedIds, currentUser) {
-    if (!currentUser || isMember) return null;
-    if (group.my_application_status === "pending" || group.my_application_status === "denied") {
-      return group.my_application_status;
+  function joinOrApplyCardButton(g, isMember, currentUser) {
+    if (!currentUser || isMember) return "";
+    if (g.requires_application) {
+      var my = g.my_application;
+      if (my && my.status === "pending") {
+        return '<button type="button" class="pwc-btn pwc-btn-muted pwc-btn-sm" disabled>Application pending</button>';
+      }
+      var label = my && my.status === "denied" ? "Apply again" : "Apply";
+      return '<button type="button" class="pwc-btn pwc-btn-sage pwc-btn-sm" onclick="event.stopPropagation(); Groups.showApply(' + g.id + ')">' + label + "</button>";
     }
-    if (pendingIds.indexOf(groupId) !== -1) return "pending";
-    if (deniedIds.indexOf(groupId) !== -1) return "denied";
-    return null;
+    return '<button type="button" class="pwc-btn pwc-btn-sage pwc-btn-sm" onclick="event.stopPropagation(); Groups.joinGroup(' + g.id + ')">Join</button>';
+  }
+
+  function joinOrApplyDetailBlock(group, isMember, currentUser) {
+    if (!currentUser) return "";
+    if (isMember) {
+      return '<button type="button" class="pwc-btn pwc-btn-muted" onclick="Groups.leaveGroup(' + group.id + ')">Leave Group</button>';
+    }
+    if (group.requires_application) {
+      var my = group.my_application;
+      if (my && my.status === "pending") {
+        return '<p class="pwc-groups-pending-note">Your application is pending review.</p>'
+          + '<button type="button" class="pwc-btn pwc-btn-muted" disabled>Application pending</button>';
+      }
+      if (my && my.status === "denied") {
+        return '<p class="pwc-groups-denied-note">Your last application was not approved. You may submit a new one.</p>'
+          + '<button type="button" class="pwc-btn pwc-btn-sage" onclick="Groups.showApply(' + group.id + ')">Apply again</button>';
+      }
+      return '<button type="button" class="pwc-btn pwc-btn-sage" onclick="Groups.showApply(' + group.id + ')">Apply to join</button>';
+    }
+    return '<button type="button" class="pwc-btn pwc-btn-sage" onclick="Groups.joinGroup(' + group.id + ')">Join Group</button>';
   }
 
   /* ── Group list ─────────────────────────────────────────────────────── */
 
-  function renderGroups(groups, myGroupIds, pendingIds, deniedIds, currentUser) {
+  function renderGroups(groups, myGroupIds, currentUser) {
     var container = document.getElementById("groups-list");
     if (!groups || groups.length === 0) {
       container.innerHTML = '<div class="pwc-groups-empty">No groups yet. Be the first to create one!</div>';
@@ -45,31 +68,20 @@ var GroupRenderer = (function () {
       var isMember = myGroupIds.indexOf(g.id) !== -1;
       var isOwner  = currentUser && currentUser.id === g.created_by;
       var isAdmin  = currentUser && currentUser.role === "admin";
-      var reqApp   = !!g.requires_application;
-      var appStat  = viewerApplicationStatus(g, g.id, isMember, pendingIds, deniedIds, currentUser);
 
       var memberBadge = isMember
         ? '<span class="pwc-groups-badge pwc-groups-badge--member">Member</span>'
         : "";
-
-      var applyBadge = "";
-      if (reqApp && !isMember && currentUser) {
-        applyBadge = '<span class="pwc-groups-badge pwc-groups-badge--apply">Application required</span>';
-      }
+      var applyBadge = !isMember && g.requires_application
+        ? '<span class="pwc-groups-badge pwc-groups-badge--apply">Application required</span>'
+        : "";
 
       var actionBtn = "";
       if (currentUser) {
         if (isMember) {
-          actionBtn = '<button class="pwc-btn pwc-btn-muted pwc-btn-sm" onclick="event.stopPropagation(); Groups.leaveGroup(' + g.id + ')">Leave</button>';
-        } else if (reqApp) {
-          if (appStat === "pending") {
-            actionBtn = '<span class="pwc-groups-pending-label">Application pending</span>';
-          } else {
-            var applyLabel = appStat === "denied" ? "Apply again" : "Apply";
-            actionBtn = '<button class="pwc-btn pwc-btn-sage pwc-btn-sm" onclick="event.stopPropagation(); Groups.applyToGroup(' + g.id + ')">' + applyLabel + "</button>";
-          }
+          actionBtn = '<button type="button" class="pwc-btn pwc-btn-muted pwc-btn-sm" onclick="event.stopPropagation(); Groups.leaveGroup(' + g.id + ')">Leave</button>';
         } else {
-          actionBtn = '<button class="pwc-btn pwc-btn-sage pwc-btn-sm" onclick="event.stopPropagation(); Groups.joinGroup(' + g.id + ')">Join</button>';
+          actionBtn = joinOrApplyCardButton(g, isMember, currentUser);
         }
       }
 
@@ -79,21 +91,20 @@ var GroupRenderer = (function () {
         adminBtns += '<button class="pwc-blog-admin-btn pwc-blog-admin-btn--danger" onclick="event.stopPropagation(); Groups.deleteGroup(' + g.id + ')" title="Delete">Delete</button>';
       }
 
-      var badges = '<div class="pwc-groups-card-badges">' + memberBadge + applyBadge + "</div>";
-
-      html += '<article class="pwc-groups-card' + (isMember ? " pwc-groups-card--member" : "") + '" onclick="Groups.openGroup(' + g.id + ')">'
+      html += '<article class="pwc-groups-card' + (isMember ? ' pwc-groups-card--member' : '') + '" onclick="Groups.openGroup(' + g.id + ')">'
         + '<div class="pwc-groups-card-top">'
-        +   badges
-        +   '<div class="pwc-blog-card-admin">' + adminBtns + "</div>"
-        + "</div>"
-        + '<h2 class="pwc-groups-card-title">' + escapeHtml(g.name) + "</h2>"
-        + '<p class="pwc-groups-card-desc">'   + escapeHtml(g.description || "No description.") + "</p>"
+        +   memberBadge
+        +   applyBadge
+        +   '<div class="pwc-blog-card-admin">' + adminBtns + '</div>'
+        + '</div>'
+        + '<h2 class="pwc-groups-card-title">' + escapeHtml(g.name) + '</h2>'
+        + '<p class="pwc-groups-card-desc">'   + escapeHtml(g.description || "No description.") + '</p>'
         + '<div class="pwc-groups-card-meta">'
-        +   '<span class="pwc-groups-card-members">' + g.member_count + " member" + (g.member_count !== 1 ? "s" : "") + "</span>"
-        +   '<span class="pwc-blog-card-date">' + formatDate(g.created_at) + "</span>"
+        +   '<span class="pwc-groups-card-members">' + g.member_count + ' member' + (g.member_count !== 1 ? 's' : '') + '</span>'
+        +   '<span class="pwc-blog-card-date">' + formatDate(g.created_at) + '</span>'
         +   actionBtn
-        + "</div>"
-        + "</article>";
+        + '</div>'
+        + '</article>';
     });
 
     container.innerHTML = html;
@@ -101,92 +112,73 @@ var GroupRenderer = (function () {
 
   /* ── Group detail ───────────────────────────────────────────────────── */
 
-  function renderGroupDetail(group, myGroupIds, pendingIds, deniedIds, currentUser) {
+  function renderGroupDetail(group, myGroupIds, currentUser, pendingApplications) {
     var content = document.getElementById("groups-detail-content");
     var isMember = myGroupIds.indexOf(group.id) !== -1;
-    var reqApp   = !!group.requires_application;
-    var isOwner  = currentUser && currentUser.id === group.created_by;
-    var isAdmin  = currentUser && currentUser.role === "admin";
-    var isMod    = isOwner || isAdmin;
-    var appStat  = viewerApplicationStatus(group, group.id, isMember, pendingIds, deniedIds, currentUser);
+
+    var policyLine = group.requires_application
+      ? '<span class="pwc-groups-policy-tag">Application required to join</span>'
+      : '<span class="pwc-groups-policy-tag pwc-groups-policy-tag--open">Open to join</span>';
 
     var html = '<article class="pwc-groups-detail">'
-      + "<h1>" + escapeHtml(group.name) + "</h1>"
-      + '<p class="pwc-groups-detail-desc">' + escapeHtml(group.description || "No description.") + "</p>"
+      + '<h1>' + escapeHtml(group.name) + '</h1>'
+      + '<p class="pwc-groups-detail-desc">' + escapeHtml(group.description || "No description.") + '</p>'
       + '<div class="pwc-groups-detail-meta">'
-      +   "<span>" + group.member_count + " member" + (group.member_count !== 1 ? "s" : "") + "</span>"
-      +   "<span>Created " + formatDate(group.created_at) + "</span>"
-      + "</div>";
+      +   policyLine
+      +   '<span>' + group.member_count + ' member' + (group.member_count !== 1 ? 's' : '') + '</span>'
+      +   '<span>Created ' + formatDate(group.created_at) + '</span>'
+      + '</div>'
+      + '<div class="pwc-groups-detail-actions">' + joinOrApplyDetailBlock(group, isMember, currentUser) + '</div>';
 
-    if (reqApp) {
-      html += '<p class="pwc-groups-detail-policy">New members must apply and be approved by the group owner (or a site admin).</p>';
-    }
-
-    if (currentUser) {
-      if (isMember) {
-        html += '<button class="pwc-btn pwc-btn-muted" onclick="Groups.leaveGroup(' + group.id + ')">Leave Group</button>';
-      } else if (reqApp) {
-        if (appStat === "pending") {
-          html += '<p class="pwc-groups-apply-status pwc-groups-apply-status--pending">Your application is pending. You will be notified when it is reviewed.</p>';
-        } else {
-          if (appStat === "denied") {
-            html += '<p class="pwc-groups-apply-status pwc-groups-apply-status--denied">Your previous application was not approved. You may submit a new one below.</p>';
-          }
-          html += '<div class="pwc-groups-apply-box">'
-            + '<label for="groups-apply-message">Message to organizers (optional)</label>'
-            + '<textarea id="groups-apply-message" rows="3" placeholder="Introduce yourself or explain why you would like to join..."></textarea>'
-            + '<button type="button" class="pwc-btn pwc-btn-sage" onclick="Groups.applyToGroup(' + group.id + ')">Submit application</button>'
-            + "</div>";
-        }
-      } else {
-        html += '<button class="pwc-btn pwc-btn-sage" onclick="Groups.joinGroup(' + group.id + ')">Join Group</button>';
-      }
-    }
-
-    html += "</article>";
-
-    if (isMod && group.pending_applications && group.pending_applications.length > 0) {
-      html += '<section class="pwc-groups-applications">'
-        + "<h3>Pending applications</h3>"
-        + '<p class="pwc-groups-applications-hint">Accept adds the member; deny lets them apply again later.</p>';
-      group.pending_applications.forEach(function (a) {
-        html += '<div class="pwc-groups-application-card">'
-          + '<div class="pwc-groups-application-user">'
-          +   escapeHtml(a.name)
-          +   ' <span class="pwc-groups-application-username">@' + escapeHtml(a.username) + "</span>"
-          +   '<span class="pwc-groups-application-date">' + formatDate(a.created_at) + "</span>"
-          + "</div>";
-        if (a.message) {
-          html += '<blockquote class="pwc-groups-application-msg">' + escapeHtml(a.message) + "</blockquote>";
-        }
-        html += '<div class="pwc-groups-application-actions">'
-          + '<button type="button" class="pwc-btn pwc-btn-sage pwc-btn-sm" onclick="Groups.decideApplication(' + group.id + "," + a.id + ',true)">Accept</button>'
-          + '<button type="button" class="pwc-btn pwc-btn-muted pwc-btn-sm" onclick="Groups.decideApplication(' + group.id + "," + a.id + ',false)">Deny</button>'
-          + "</div>"
-          + "</div>";
-      });
-      html += "</section>";
-    }
+    html += '</article>';
 
     html += '<section class="pwc-groups-members">'
-      + "<h3>Members</h3>";
+      + '<h3>Members</h3>';
 
     if (group.members && group.members.length > 0) {
       group.members.forEach(function (m) {
         var name = ((m.firstName || "") + " " + (m.lastName || "")).trim() || m.username;
         html += '<div class="pwc-groups-member">'
-          + '<div class="pwc-groups-member-avatar">' + escapeHtml((m.firstName || "?").charAt(0) + (m.lastName || "").charAt(0)) + "</div>"
+          + '<div class="pwc-groups-member-avatar">' + escapeHtml((m.firstName || "?").charAt(0) + (m.lastName || "").charAt(0)) + '</div>'
           + '<div class="pwc-groups-member-info">'
-          +   '<span class="pwc-groups-member-name">' + escapeHtml(name) + "</span>"
-          +   '<span class="pwc-groups-member-username">@' + escapeHtml(m.username) + "</span>"
-          + "</div>"
-          + "</div>";
+          +   '<span class="pwc-groups-member-name">' + escapeHtml(name) + '</span>'
+          +   '<span class="pwc-groups-member-username">@' + escapeHtml(m.username) + '</span>'
+          + '</div>'
+          + '</div>';
       });
     } else {
       html += '<p class="pwc-groups-no-members">No members yet.</p>';
     }
 
-    html += "</section>";
+    html += '</section>';
+
+    if (pendingApplications !== null && pendingApplications !== undefined) {
+      html += '<section class="pwc-groups-applications-admin">'
+        + '<h3>Pending applications</h3>';
+      if (!pendingApplications.length) {
+        html += '<p class="pwc-groups-no-members">No pending applications.</p>';
+      } else {
+        pendingApplications.forEach(function (a) {
+          var u = a.user || {};
+          var name = ((u.firstName || "") + " " + (u.lastName || "")).trim() || u.username || "User";
+          html += '<div class="pwc-groups-application-row">'
+            + '<div class="pwc-groups-application-user">'
+            +   '<span class="pwc-groups-application-name">' + escapeHtml(name) + '</span>'
+            +   '<span class="pwc-groups-application-username">@' + escapeHtml(u.username || "") + '</span>'
+            + '</div>';
+          if (a.message) {
+            html += '<p class="pwc-groups-application-msg">' + escapeHtml(a.message) + '</p>';
+          }
+          html += '<div class="pwc-groups-application-actions">'
+            + '<button type="button" class="pwc-btn pwc-btn-sage pwc-btn-sm" onclick="Groups.approveApplication(' + group.id + "," + a.id + ')">Accept</button>'
+            + '<button type="button" class="pwc-btn pwc-btn-muted pwc-btn-sm" onclick="Groups.denyApplication(' + group.id + "," + a.id + ')">Deny</button>'
+            + '</div>'
+            + '</div>';
+        });
+      }
+      html += '</section>';
+    }
+
     content.innerHTML = html;
   }
 
@@ -197,7 +189,7 @@ var GroupRenderer = (function () {
   }
 
   function showError(message) {
-    document.getElementById("groups-list").innerHTML = '<div class="pwc-blog-empty">' + escapeHtml(message) + "</div>";
+    document.getElementById("groups-list").innerHTML = '<div class="pwc-blog-empty">' + escapeHtml(message) + '</div>';
   }
 
   function showDetailLoading() {
