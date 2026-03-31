@@ -17,7 +17,7 @@
 
   /* ── Config ─────────────────────────────────────────────────── */
 
-  var BASE = '/wc-FE';
+  var BASE = '/pwc';
   var API_BASE_URL = (window.PWC_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
   var REDIRECT_AFTER_LOGIN = BASE + '/navigation/profile';
 

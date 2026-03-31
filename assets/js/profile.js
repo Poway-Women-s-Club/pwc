@@ -20,7 +20,7 @@
 
   /* ── Config ──────────────────────────────────────────────────────────── */
 
-  var LOGIN_URL = (window.PWC_BASE || "/wc-FE") + "/navigation/login";
+  var LOGIN_URL = (window.PWC_BASE || "/pwc") + "/navigation/login";
 
   /* ── Helpers ─────────────────────────────────────────────────────────── */
 

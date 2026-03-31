@@ -27,7 +27,7 @@ var BlogRenderer = (function () {
       var u = new URL(base.href);
       return u.pathname.replace(/\/navigation\/blog\/?$/, "");
     }
-    return "/wc-FE";
+    return "/pwc";
   }
 
   /* ── Post list ───────────────────────────────────────────────────────── */

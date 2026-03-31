@@ -3,24 +3,23 @@
 
 title: Poway Woman's Club
 description: "Serving the Poway community since 1960 — scholarships, arts, civic engagement, and more."
-owner_name: P4Codemaxxers
+owner_name: Poway-Women-s-Club
 github_username: EvanSvetina
-github_repo: "wc-FE"
-baseurl: "/wc-FE"
+github_repo: "pwc"
+baseurl: "/pwc"
 future: true
 
 # Build settings
 incremental: false
 
-remote_theme: jekyll/minima
+theme: minima
 plugins:
-  - jekyll-remote-theme
   - jekyll-include-cache
 
 # Minima theme config
 minima:
   social_links:
-    - { platform: github, user_url: "https://github.com/P4CodeMaxxers/wc-FE" }
+    - { platform: github, user_url: "https://github.com/Poway-Women-s-Club/pwc" }
   nav_pages:
     - navigation/about.md
     - navigation/events.md

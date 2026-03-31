@@ -1,6 +1,6 @@
 HOST ?= localhost
 PORT ?= 4600
-REPO_NAME ?= wc-FE
+REPO_NAME ?= pwc
 LOG_FILE = /tmp/jekyll$(PORT).log
 
 SHELL = /bin/bash -c
