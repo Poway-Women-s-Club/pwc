@@ -2826,3 +2826,96 @@ code, pre {
   border: 1px solid var(--pwc-border);
   border-radius: 8px;
 }
+
+/* ─── APPEARANCE TAB — Cursor Picker ──────────────────────────────────────── */
+
+.pwc-appearance-section {
+  max-width: 640px;
+}
+
+.pwc-appearance-heading {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--pwc-charcoal);
+  margin: 0 0 0.35rem;
+}
+
+.pwc-appearance-desc {
+  font-size: 0.875rem;
+  color: var(--pwc-muted);
+  margin: 0 0 1.5rem;
+  line-height: 1.55;
+}
+
+.pwc-cursor-group-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pwc-muted);
+  margin: 0 0 0.6rem;
+}
+
+.pwc-cursor-group-label--themed {
+  margin-top: 1.5rem;
+}
+
+/* Grid of swatches */
+.pwc-cursor-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* Individual swatch button */
+.pwc-cursor-swatch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem;
+  width: 80px;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  background: var(--pwc-white);
+  box-shadow: var(--pwc-shadow-sm);
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+}
+
+.pwc-cursor-swatch:hover {
+  border-color: var(--pwc-sage-light);
+  transform: translateY(-1px);
+  box-shadow: var(--pwc-shadow-md);
+}
+
+.pwc-cursor-swatch.active {
+  border-color: var(--pwc-sage);
+  box-shadow: 0 0 0 3px rgba(122, 142, 107, 0.18), var(--pwc-shadow-sm);
+}
+
+/* Cursor color preview box */
+.pwc-cursor-preview {
+  width: 54px;
+  height: 54px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--pwc-cream);
+}
+
+/* Default cursor uses a dashed outline preview */
+.pwc-cursor-preview--default {
+  background: var(--pwc-cream);
+  border: 2px dashed var(--pwc-border);
+}
+
+.pwc-cursor-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--pwc-text);
+  text-align: center;
+  white-space: nowrap;
+}

@@ -7,7 +7,6 @@ _posts/**/*_GithubIssue.md
 _posts/**/*_GithubPR.md
 _posts/**/*-by_author.json
 nohup.out
-Gemfile.lock
 node_modules
 .DS_Store
 .env

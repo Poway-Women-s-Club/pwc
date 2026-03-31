@@ -325,6 +325,83 @@
       });
     });
 
+    /* ── Cursor picker ──────────────────────────────────────────────────── */
+
+    function buildCursorSwatch(c, saved) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "pwc-cursor-swatch" + (c.key === saved ? " active" : "");
+      btn.setAttribute("data-cursor", c.key);
+      btn.title = c.label;
+
+      var preview = document.createElement("div");
+      preview.className = "pwc-cursor-preview";
+
+      if (c.key === "default") {
+        preview.classList.add("pwc-cursor-preview--default");
+        preview.innerHTML =
+          "<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28'>" +
+          "<path d='M5 2 L5 22 L10 17 L13 25 L16 24 L13 16 L19 16 Z'" +
+          " fill='#555' stroke='#fff' stroke-width='1.5' stroke-linejoin='round'/>" +
+          "</svg>";
+      } else if (c.isFlower) {
+        /* Flower cursor: show the flower shape on a neutral background */
+        preview.innerHTML =
+          "<span style='filter:drop-shadow(0 1px 2px rgba(0,0,0,0.25))'>" +
+          CursorManager.buildFlowerSVG(c.fill, c.stroke, 36) +
+          "</span>";
+      } else {
+        /* Arrow cursors: show the arrow on a background matching the cursor color */
+        /* White cursor needs a dark background so it's visible */
+        preview.style.background = c.key === "white" ? "#333333" : c.fill;
+        var svgFill   = c.fill;
+        var svgStroke = c.stroke;
+        preview.innerHTML =
+          "<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28'" +
+          " style='filter:drop-shadow(0 1px 2px rgba(0,0,0,0.35))'>" +
+          "<path d='M5 2 L5 22 L10 17 L13 25 L16 24 L13 16 L19 16 Z'" +
+          " fill='" + svgFill + "' stroke='" + svgStroke + "'" +
+          " stroke-width='1.5' stroke-linejoin='round'/>" +
+          "</svg>";
+      }
+
+      var label = document.createElement("span");
+      label.className = "pwc-cursor-label";
+      label.textContent = c.label;
+
+      btn.appendChild(preview);
+      btn.appendChild(label);
+
+      btn.addEventListener("click", function () {
+        if (typeof CursorManager !== "undefined") { CursorManager.apply(c.key); }
+        document.querySelectorAll(".pwc-cursor-swatch").forEach(function (s) {
+          s.classList.remove("active");
+        });
+        btn.classList.add("active");
+        showMsg(el("cursorMsg"), "Cursor updated.", false);
+      });
+
+      return btn;
+    }
+
+    function initCursorPicker() {
+      var stdGrid    = el("cursorGridStandard");
+      var themedGrid = el("cursorGridThemed");
+      if (!stdGrid || !themedGrid || typeof CursorManager === "undefined") return;
+
+      var saved = CursorManager.getSaved();
+      CursorManager.CURSORS.forEach(function (c) {
+        var swatch = buildCursorSwatch(c, saved);
+        if (c.group === "themed") {
+          themedGrid.appendChild(swatch);
+        } else {
+          stdGrid.appendChild(swatch);
+        }
+      });
+    }
+
+    initCursorPicker();
+
     /* ── Hide footer (full-app mode) ─────────────────────────────────────── */
 
     var footer = document.querySelector(".site-footer");

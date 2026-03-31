@@ -54,6 +54,7 @@ show_reading_time: false
           <button class="pwc-sidenav-btn active" data-tab="overview">Overview</button>
           <button class="pwc-sidenav-btn" data-tab="edit">Edit Profile</button>
           <button class="pwc-sidenav-btn" data-tab="security">Security</button>
+          <button class="pwc-sidenav-btn" data-tab="appearance">Appearance</button>
         </nav>
 
         <button class="pwc-logout-btn" id="logoutBtn">Sign Out</button>
@@ -166,6 +167,29 @@ show_reading_time: false
               <button type="button" class="pwc-btn pwc-btn-fill" id="changePwBtn">Update Password</button>
             </div>
           </form>
+        </section>
+
+        <!-- APPEARANCE TAB -->
+        <section class="pwc-tab" id="tab-appearance">
+          <div class="pwc-tab-header">
+            <h1>Appearance</h1>
+            <hr class="pwc-rule">
+          </div>
+
+          <div class="pwc-appearance-section">
+            <h2 class="pwc-appearance-heading">Cursor Style</h2>
+            <p class="pwc-appearance-desc">Choose a cursor that reflects your style. Your selection is saved and applies across the entire site.</p>
+
+            <p class="pwc-cursor-group-label">Standard</p>
+            <div class="pwc-cursor-grid" id="cursorGridStandard"></div>
+
+            <p class="pwc-cursor-group-label pwc-cursor-group-label--themed">Site-Themed</p>
+            <div class="pwc-cursor-grid" id="cursorGridThemed"></div>
+
+            <div class="pwc-form-actions" style="margin-top:1.5rem;">
+              <span class="pwc-save-msg" id="cursorMsg"></span>
+            </div>
+          </div>
         </section>
 
       </main>
