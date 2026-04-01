@@ -36,9 +36,10 @@ minima:
 events_rsvp_form_action: ""
 events_meeting_request_form_action: ""
 
-# Public API base URL for calendar/RSVP interactions (Flask backend).
-# Example: "http://localhost:5001"
+# Deployed / production API (GitHub Pages, or any non-localhost hostname).
+# Local Jekyll (localhost / 127.0.0.1) uses events_api_local_url so sessions & RSVP match Login/Blog/Groups.
 events_api_base_url: "https://pwc-flask.opencodingsociety.com"
+events_api_local_url: "http://localhost:8327"
 
 exclude:
   - venv

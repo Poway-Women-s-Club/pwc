@@ -101,7 +101,7 @@ permalink: /navigation/blog/
 
 <script>
 var API = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
-  ? "http://localhost:8327"
+  ? "{{ site.events_api_local_url | default: 'http://localhost:8327' | escape }}"
   : "{{ site.events_api_base_url | escape }}";
 </script>
 <script src="{{ '/assets/js/group-api.js'      | relative_url }}"></script>

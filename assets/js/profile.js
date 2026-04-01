@@ -70,6 +70,7 @@
         bio:       backendUser.bio       || "",
         languages: backendUser.languages || [],
         interests: backendUser.interests || [],
+        hasGoogleLinked: !!backendUser.hasGoogleLinked,
       };
       saveSession(user);
       initApp(user);
@@ -231,6 +232,24 @@
     bindTagInput("langInput",     langTags,     "langChips",     false);
     bindTagInput("interestInput", interestTags, "interestChips", true);
 
+    function renderGoogleLinkUi() {
+      var status = el("googleLinkStatus");
+      var btn = el("googleLinkBtn");
+      if (!status || !btn) { return; }
+      if (user.hasGoogleLinked) {
+        status.textContent =
+          "Your member account is linked with Google. You can turn on email reminders when you RSVP to events on the calendar.";
+        btn.hidden = true;
+      } else {
+        status.textContent =
+          "Link Google using the same email as your profile (" +
+          (user.email || "") +
+          ") to receive meeting reminders.";
+        btn.hidden = false;
+      }
+    }
+    renderGoogleLinkUi();
+
     /* ── Save profile ───────────────────────────────────────────────────── */
 
     el("saveBtn").addEventListener("click", function () {
@@ -259,8 +278,10 @@
           user.bio       = updated.bio       || "";
           user.languages = updated.languages || [];
           user.interests = updated.interests || [];
+          user.hasGoogleLinked = !!updated.hasGoogleLinked;
           saveSession(user);
           renderOverview();
+          renderGoogleLinkUi();
           showMsg(el("saveMsg"), "Profile saved.", false);
         })
         .catch(function (err) {
@@ -300,6 +321,24 @@
         .finally(function () {
           pwBtn.disabled    = false;
           pwBtn.textContent = "Update Password";
+        });
+    });
+
+    el("googleLinkBtn").addEventListener("click", function () {
+      var gBtn = el("googleLinkBtn");
+      gBtn.disabled = true;
+      ProfileAPI.linkGoogle()
+        .then(function (updated) {
+          user.hasGoogleLinked = !!updated.hasGoogleLinked;
+          saveSession(user);
+          renderGoogleLinkUi();
+          showMsg(el("googleLinkMsg"), "Google account connected.", false);
+        })
+        .catch(function (err) {
+          showMsg(el("googleLinkMsg"), err.message || "Could not link Google.", true);
+        })
+        .finally(function () {
+          gBtn.disabled = false;
         });
     });
 

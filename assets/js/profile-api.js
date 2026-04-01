@@ -55,11 +55,19 @@ var ProfileAPI = (function () {
     }).catch(function () {});
   }
 
+  function linkGoogle() {
+    if (!window.PWCGoogleOAuth || !window.PWCGoogleOAuth.linkGoogleAccount) {
+      return Promise.reject(new Error("Google linking is not available on this page."));
+    }
+    return window.PWCGoogleOAuth.linkGoogleAccount();
+  }
+
   return {
     validateSession: validateSession,
     saveProfile:     saveProfile,
     changePassword:  changePassword,
     logout:          logout,
+    linkGoogle:      linkGoogle,
   };
 
 })();

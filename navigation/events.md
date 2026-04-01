@@ -50,6 +50,16 @@ show_reading_time: false
     <div id="pwc-rsvp-user-banner" class="pwc-rsvp-user-banner" hidden>
       RSVPing as <strong id="pwc-rsvp-user-display"></strong>
     </div>
+    <div id="pwc-rsvp-session-mismatch" class="pwc-alert" style="margin-bottom:0.75rem;" hidden>
+      <strong>Session not reaching the API.</strong>
+      If this page is <code>http://localhost…</code> but <code>_config.yml</code> uses a <strong>different host</strong> (e.g. <code>https://…opencodingsociety.com</code>), the browser often <strong>will not send</strong> your login cookie on API calls — so you look logged in here but the server sees a guest.
+      <br><br>
+      <strong>Fix A (local dev):</strong> open this site as <code>http://localhost:…</code> (not GitHub Pages), run Flask on port <strong>8327</strong>, and <a href="{{ '/navigation/login' | relative_url }}">sign in again</a>. The Events page uses <code>events_api_local_url</code> from <code>_config.yml</code> when the hostname is localhost.
+      <br>
+      <strong>Fix B (remote API):</strong> on the server <code>.env</code> set <code>SESSION_COOKIE_CROSS_SITE=1</code> (and HTTPS only). Deploy team must allow your frontend origin in CORS.
+      <br><br>
+      <a href="{{ '/navigation/login' | relative_url }}">Open login</a> after changing API URL or server config.
+    </div>
 
     <div class="pwc-form-grid">
       <!-- Name/email only shown for guests (hidden when logged in) -->
@@ -73,6 +83,13 @@ show_reading_time: false
         Notes (optional)
         <textarea name="notes" rows="3"></textarea>
       </label>
+      <label class="pwc-span-2" id="pwc-rsvp-reminder-wrap" hidden>
+        <span style="display:flex; gap:0.55rem; align-items:flex-start;">
+          <input type="checkbox" id="pwc-rsvp-wants-reminder" name="wants_reminders" style="width:auto; min-width:auto; margin-top:0.2rem; flex:0 0 auto;">
+          <span>Email me a reminder about 30 minutes before this meeting (uses your member profile email after you link Google).</span>
+        </span>
+      </label>
+      <p class="pwc-span-2" id="pwc-rsvp-reminder-hint" style="font-size:0.88rem; color: var(--pwc-muted); margin:0; line-height:1.45;" hidden></p>
     </div>
 
     <button type="submit" class="pwc-btn pwc-btn-fill" style="margin-top: 0.85rem;">Submit RSVP</button>
@@ -152,7 +169,9 @@ show_reading_time: false
  </div>
 <script>
   (function () {
-    var API_BASE_URL = "{{ site.events_api_base_url | default: '' | escape }}";
+    var API_BASE_URL = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
+      ? "{{ site.events_api_local_url | default: 'http://localhost:8327' | escape }}"
+      : "{{ site.events_api_base_url | default: '' | escape }}";
     var calendarInstance = null;
 
     function $(id) { return document.getElementById(id); }
@@ -276,14 +295,25 @@ show_reading_time: false
         }
         var data = await resp.json();
         // Backend returns the user object directly (or {user:null}) on failure.
-        authCache.user = data && (data.username || data.email || data.role) ? data : null;
+        if (data && (data.username || data.email || data.role)) {
+          if (typeof data.hasGoogleLinked === "undefined") data.hasGoogleLinked = false;
+          authCache.user = data;
+        } else {
+          authCache.user = null;
+        }
         authCache.status = "done";
         return authCache.user;
       } catch (e) {
+        // Do not cache failures — e.g. API was down on first load; retry later on same page.
         authCache.user = null;
-        authCache.status = "done";
+        authCache.status = "unknown";
         return null;
       }
+    }
+
+    function invalidateAuthCache() {
+      authCache.status = "unknown";
+      authCache.user = null;
     }
 
     function isAdminUser(u) {
@@ -523,6 +553,8 @@ show_reading_time: false
       var rsvpForm = $("pwc-rsvp-form");
       if (rsvpForm) rsvpForm.dataset.location = loc;
 
+      /* Fresh session check: nav can show sessionStorage while /api/auth/me is stale or failed earlier */
+      invalidateAuthCache();
       /* Hide name/email fields when logged in */
       var me = await getCurrentUser();
       var nameLabel = $("pwc-rsvp-name-label");
@@ -554,6 +586,39 @@ show_reading_time: false
           if (emailLabel.querySelector("input")) emailLabel.querySelector("input").setAttribute("required", "");
         }
         if (userBanner) userBanner.hidden = true;
+      }
+
+      var sessionMismatchEl = $("pwc-rsvp-session-mismatch");
+      if (sessionMismatchEl) {
+        var cachedUser = null;
+        try { cachedUser = JSON.parse(sessionStorage.getItem("pwc_user")); } catch (e2) { cachedUser = null; }
+        sessionMismatchEl.hidden = !(cachedUser && !me);
+      }
+
+      var reminderWrap = $("pwc-rsvp-reminder-wrap");
+      var reminderHint = $("pwc-rsvp-reminder-hint");
+      var reminderCb = $("pwc-rsvp-wants-reminder");
+      if (reminderWrap) reminderWrap.hidden = true;
+      if (reminderHint) reminderHint.hidden = true;
+      if (reminderCb) reminderCb.checked = false;
+
+      if (me && backendEventId) {
+        if (reminderWrap) reminderWrap.hidden = false;
+        if (reminderHint) {
+          if (!me.hasGoogleLinked) {
+            reminderHint.hidden = false;
+            reminderHint.textContent =
+              "To receive reminders, link your Google account under Profile → Security (use the same email as your member profile).";
+          } else {
+            reminderHint.hidden = true;
+            reminderHint.textContent = "";
+          }
+        }
+        fetch(apiUrl("/api/events/" + backendEventId), { credentials: "include" })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (ev) {
+            if (reminderCb && ev && ev.user_wants_email_reminder) reminderCb.checked = true;
+          });
       }
 
       backdrop.hidden = false;
@@ -894,6 +959,13 @@ show_reading_time: false
       var meetingFeedback = $("pwc-meeting-feedback");
 
       if (rsvpForm) {
+        var attSel = rsvpForm.elements["attendance"];
+        if (attSel) {
+          attSel.addEventListener("change", function () {
+            var cb = $("pwc-rsvp-wants-reminder");
+            if (cb && attSel.value !== "yes") cb.checked = false;
+          });
+        }
         rsvpForm.addEventListener("submit", async function (e) {
           e.preventDefault();
           clearRsvpFeedback();
@@ -916,7 +988,15 @@ show_reading_time: false
                 var endpointBase = apiUrl("/api/events/" + backendIdVal + "/rsvp");
                 var resp = null;
                 if (attendance === "yes") {
-                  resp = await fetch(endpointBase, { method: "POST", credentials: "include" });
+                  var wantRm = false;
+                  var cbRm = $("pwc-rsvp-wants-reminder");
+                  if (cbRm) wantRm = !!cbRm.checked;
+                  resp = await fetch(endpointBase, {
+                    method: "POST",
+                    credentials: "include",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ wants_email_reminder: wantRm })
+                  });
                 } else {
                   resp = await fetch(endpointBase, { method: "DELETE", credentials: "include" });
                 }
@@ -930,7 +1010,15 @@ show_reading_time: false
                 }
 
                 // Update feedback + counts.
-                showRsvpFeedback("Thanks! Your RSVP was submitted.", false);
+                var thanks = "Thanks! Your RSVP was submitted.";
+                if (attendance === "yes") {
+                  var cbRm2 = $("pwc-rsvp-wants-reminder");
+                  var askedRm = cbRm2 && cbRm2.checked;
+                  if (askedRm && data && data.reminder_confirmation_email_sent === false) {
+                    thanks += " Reminders are saved, but the confirmation email was not sent — the server needs SMTP configured (MAIL_SERVER, MAIL_USERNAME, MAIL_PASSWORD in pwc-flask .env).";
+                  }
+                }
+                showRsvpFeedback(thanks, false);
                 if (backendIdVal) {
                   var count = await loadEventAttendingCount(backendIdVal);
                   var metaEl2 = $("pwc-rsvp-meta");

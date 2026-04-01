@@ -167,6 +167,15 @@ show_reading_time: false
               <button type="button" class="pwc-btn pwc-btn-fill" id="changePwBtn">Update Password</button>
             </div>
           </form>
+
+          <div class="pwc-form-group" style="margin-top:2rem; padding-top:1.5rem; border-top:1px solid rgba(232,223,226,0.95);">
+            <h2 class="pwc-appearance-heading" style="margin-bottom:0.35rem;">Google account</h2>
+            <p class="pwc-appearance-desc" id="googleLinkStatus">Loading…</p>
+            <div class="pwc-form-actions" style="margin-top:0.75rem;">
+              <button type="button" class="pwc-btn pwc-btn-border" id="googleLinkBtn">Connect Google</button>
+              <span class="pwc-save-msg" id="googleLinkMsg"></span>
+            </div>
+          </div>
         </section>
 
         <!-- APPEARANCE TAB -->
@@ -256,9 +265,10 @@ show_reading_time: false
 <script>
   // Used by profile-api.js and any other client auth helpers.
   window.PWC_API_BASE_URL = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
-    ? "http://localhost:8327"
+    ? "{{ site.events_api_local_url | default: 'http://localhost:8327' | escape }}"
     : "{{ site.events_api_base_url | escape }}";
 </script>
+<script src="{{ site.baseurl }}/assets/js/google-oauth.js"></script>
 <script src="{{ site.baseurl }}/assets/js/group-api.js"></script>
 <script src="{{ site.baseurl }}/assets/js/profile-api.js"></script>
 <script src="{{ site.baseurl }}/assets/js/profile-messages.js"></script>

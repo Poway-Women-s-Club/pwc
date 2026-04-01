@@ -108,7 +108,8 @@
       lastName:  user.lastName  || '',
       bio:       user.bio       || '',
       languages: user.languages || [],
-      interests: user.interests || []
+      interests: user.interests || [],
+      hasGoogleLinked: !!user.hasGoogleLinked
     };
     sessionStorage.setItem('pwc_user', JSON.stringify(session));
     window.location.href = REDIRECT_AFTER_LOGIN;
@@ -256,6 +257,16 @@
       window.location.href = REDIRECT_AFTER_LOGIN;
     }
   } catch (_) {}
+
+  window.PWC_GOOGLE_ERROR = function (err) {
+    showAlert(err && err.message ? err.message : String(err));
+  };
+
+  if (window.PWCGoogleOAuth) {
+    window.PWCGoogleOAuth.initLoginGoogle(storeAndRedirect, function () {
+      showAlert('Google sign-in is not configured on the server. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in the Flask .env and restart.');
+    });
+  }
 
   el('loginBtn').addEventListener('click', doLogin);
   el('registerBtn').addEventListener('click', doRegister);

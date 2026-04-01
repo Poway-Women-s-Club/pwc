@@ -43,6 +43,10 @@ show_reading_time: false
         <button class="btn btn__primary" id="loginBtn" type="button">Sign In</button>
         <a class="btn btn__secondary" href="{{ site.baseurl }}/">← Back to Home</a>
       </div>
+      <div class="login-google-wrap" id="googleSignInWrap" hidden>
+        <p class="login-oauth-label">or</p>
+        <button class="btn btn__secondary login-google-btn" id="googleSignInBtn" type="button">Continue with Google</button>
+      </div>
       <div class="login-back">
         Don't have an account? <a href="#" id="showRegister">Create one</a>
       </div>
@@ -89,6 +93,10 @@ show_reading_time: false
         <button class="btn btn__primary" id="registerBtn" type="button">Create Account</button>
         <a class="btn btn__secondary" href="{{ site.baseurl }}/">← Back to Home</a>
       </div>
+      <div class="login-google-wrap" id="googleSignInWrapRegister" hidden>
+        <p class="login-oauth-label">or</p>
+        <button class="btn btn__secondary login-google-btn" id="googleSignInBtnRegister" type="button">Continue with Google</button>
+      </div>
       <div class="login-back">
         Already have an account? <a href="#" id="showLogin">Sign in</a>
       </div>
@@ -99,7 +107,8 @@ show_reading_time: false
 
 <script>
   window.PWC_API_BASE_URL = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
-    ? "http://localhost:8327"
+    ? "{{ site.events_api_local_url | default: 'http://localhost:8327' | escape }}"
     : "{{ site.events_api_base_url | escape }}";
 </script>
+<script src="{{ site.baseurl }}/assets/js/google-oauth.js"></script>
 <script src="{{ site.baseurl }}/assets/js/login.js"></script>

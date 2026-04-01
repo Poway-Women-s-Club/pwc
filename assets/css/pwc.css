@@ -909,6 +909,29 @@ code, pre {
   gap: 0.75rem;
 }
 
+.login-google-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.login-oauth-label {
+  text-align: center;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--pwc-muted);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.login-google-btn {
+  width: 100%;
+}
+
 .login-back {
   text-align: center;
   font-family: 'Nunito Sans', sans-serif;
