@@ -71,6 +71,8 @@
         languages: backendUser.languages || [],
         interests: backendUser.interests || [],
         hasGoogleLinked: !!backendUser.hasGoogleLinked,
+        avatar_url:      backendUser.avatar_url || "",
+        avatar_custom:   !!backendUser.avatar_custom,
       };
       saveSession(user);
       initApp(user);
@@ -111,9 +113,39 @@
 
     /* ── Topbar display ────────────────────────────────────────────────── */
 
+    function renderAvatarDisplays() {
+      var url = (user.avatar_url || "").trim();
+      var imgS = el("sidebarAvatarImg");
+      var imgT = el("topbarAvatarImg");
+      var spanI = el("avatarInitials");
+      var spanT = el("topbarAvatarText");
+      if (!imgS || !imgT || !spanI || !spanT) return;
+      var initials = getInitials(user);
+      if (url) {
+        imgS.src = url;
+        imgS.hidden = false;
+        spanI.style.display = "none";
+        imgT.src = url;
+        imgT.hidden = false;
+        spanT.style.display = "none";
+      } else {
+        imgS.removeAttribute("src");
+        imgS.hidden = true;
+        spanI.style.display = "";
+        spanI.textContent = initials;
+        imgT.removeAttribute("src");
+        imgT.hidden = true;
+        spanT.style.display = "";
+        spanT.textContent = initials;
+      }
+      if (typeof ProfileAvatar !== "undefined" && ProfileAvatar.syncRemoveButton) {
+        ProfileAvatar.syncRemoveButton();
+      }
+    }
+
     function renderTopbar() {
-      el("topbarName").textContent   = (user.firstName + " " + user.lastName).trim() || user.username;
-      el("topbarAvatar").textContent = getInitials(user);
+      el("topbarName").textContent = (user.firstName + " " + user.lastName).trim() || user.username;
+      renderAvatarDisplays();
     }
 
     /* ── Profile overview rendering ────────────────────────────────────── */
@@ -134,10 +166,8 @@
     }
 
     function renderOverview() {
-      el("avatarInitials").textContent = getInitials(user);
-      el("topbarAvatar").textContent   = getInitials(user);
+      renderTopbar();
       el("sidebarName").textContent    = (user.firstName + " " + user.lastName).trim() || user.username;
-      el("topbarName").textContent     = (user.firstName + " " + user.lastName).trim() || user.username;
       el("sidebarEmail").textContent   = user.email || "";
       el("ov-name").textContent        = ((user.firstName || "") + " " + (user.lastName || "")).trim() || "—";
       el("ov-email").textContent       = user.email || "—";
@@ -279,6 +309,8 @@
           user.languages = updated.languages || [];
           user.interests = updated.interests || [];
           user.hasGoogleLinked = !!updated.hasGoogleLinked;
+          if (updated.avatar_url !== undefined) user.avatar_url = updated.avatar_url || "";
+          if (updated.avatar_custom !== undefined) user.avatar_custom = !!updated.avatar_custom;
           saveSession(user);
           renderOverview();
           renderGoogleLinkUi();
@@ -330,8 +362,11 @@
       ProfileAPI.linkGoogle()
         .then(function (updated) {
           user.hasGoogleLinked = !!updated.hasGoogleLinked;
+          if (updated.avatar_url !== undefined) user.avatar_url = updated.avatar_url || "";
+          if (updated.avatar_custom !== undefined) user.avatar_custom = !!updated.avatar_custom;
           saveSession(user);
           renderGoogleLinkUi();
+          renderAvatarDisplays();
           showMsg(el("googleLinkMsg"), "Google account connected.", false);
         })
         .catch(function (err) {
@@ -439,6 +474,22 @@
       });
     }
 
+    if (typeof ProfileAvatar !== "undefined") {
+      ProfileAvatar.init({
+        getUser: function () {
+          return user;
+        },
+        setUser: function (partial) {
+          Object.assign(user, partial);
+          saveSession(user);
+        },
+        renderAvatars: renderAvatarDisplays,
+        showMsg: function (text, isErr) {
+          showMsg(el("avatarMsg"), text, isErr);
+        },
+      });
+    }
+
     initCursorPicker();
 
     /* ── Hide footer (full-app mode) ─────────────────────────────────────── */
@@ -450,7 +501,6 @@
 
     renderOverview();
     fillEditForm();
-    renderTopbar();
   }
 
 })();

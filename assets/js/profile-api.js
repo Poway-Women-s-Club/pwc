@@ -62,12 +62,41 @@ var ProfileAPI = (function () {
     return window.PWCGoogleOAuth.linkGoogleAccount();
   }
 
+  function uploadAvatar(blob) {
+    var fd = new FormData();
+    fd.append("file", blob, "avatar.jpg");
+    return fetch(API_BASE_URL + "/api/profile/avatar", {
+      method:      "POST",
+      credentials: "include",
+      body:        fd,
+    }).then(function (res) {
+      return res.json().then(function (body) {
+        if (!res.ok) throw new Error((body && body.error) || "Failed to upload photo.");
+        return body;
+      });
+    });
+  }
+
+  function deleteAvatar() {
+    return fetch(API_BASE_URL + "/api/profile/avatar", {
+      method:      "DELETE",
+      credentials: "include",
+    }).then(function (res) {
+      return res.json().then(function (body) {
+        if (!res.ok) throw new Error((body && body.error) || "Failed to remove photo.");
+        return body;
+      });
+    });
+  }
+
   return {
     validateSession: validateSession,
     saveProfile:     saveProfile,
     changePassword:  changePassword,
     logout:          logout,
     linkGoogle:      linkGoogle,
+    uploadAvatar:    uploadAvatar,
+    deleteAvatar:    deleteAvatar,
   };
 
 })();

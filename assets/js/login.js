@@ -109,7 +109,9 @@
       bio:       user.bio       || '',
       languages: user.languages || [],
       interests: user.interests || [],
-      hasGoogleLinked: !!user.hasGoogleLinked
+      hasGoogleLinked: !!user.hasGoogleLinked,
+      avatar_url:      user.avatar_url || '',
+      avatar_custom:   !!user.avatar_custom,
     };
     sessionStorage.setItem('pwc_user', JSON.stringify(session));
     window.location.href = REDIRECT_AFTER_LOGIN;

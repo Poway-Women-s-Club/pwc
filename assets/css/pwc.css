@@ -1072,7 +1072,8 @@ code, pre {
 }
 
 .pwc-topbar-avatar {
-  width: 32px; height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--pwc-sage), var(--pwc-rose));
   display: flex;
@@ -1083,6 +1084,19 @@ code, pre {
   font-weight: 700;
   color: var(--pwc-white);
   flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.pwc-topbar-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.pwc-topbar-avatar-img[hidden] {
+  display: none !important;
 }
 
 /* View switching */
@@ -1141,6 +1155,61 @@ code, pre {
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--pwc-charcoal);
+  overflow: hidden;
+  position: relative;
+}
+
+.pwc-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.pwc-avatar-img[hidden] {
+  display: none !important;
+}
+
+.pwc-avatar-edit-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.pwc-btn-danger-outline {
+  border-color: rgba(180, 80, 90, 0.65) !important;
+  color: var(--pwc-rose-dark) !important;
+}
+
+.pwc-btn-danger-outline:hover {
+  background: rgba(180, 80, 90, 0.08) !important;
+}
+
+/* Avatar crop modal (Cropper.js) */
+.pwc-modal--avatar-crop {
+  width: min(560px, calc(100vw - 2rem));
+}
+
+.pwc-crop-wrap {
+  max-height: min(52vh, 420px);
+  background: #1a1a1a;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 0.5rem 0 1rem;
+}
+
+.pwc-crop-wrap .pwc-cropper-img {
+  display: block;
+  max-width: 100%;
+}
+
+.pwc-modal-actions--crop {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 0.25rem;
 }
 
 .pwc-sidebar-name {

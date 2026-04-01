@@ -32,7 +32,10 @@ show_reading_time: false
     </div>
     <div class="pwc-topbar-user">
       <span id="topbarName"></span>
-      <div class="pwc-topbar-avatar" id="topbarAvatar">—</div>
+      <div class="pwc-topbar-avatar" id="topbarAvatarWrap">
+        <img id="topbarAvatarImg" class="pwc-topbar-avatar-img" alt="" width="36" height="36" hidden>
+        <span id="topbarAvatarText">—</span>
+      </div>
     </div>
   </nav>
 
@@ -45,7 +48,10 @@ show_reading_time: false
       <!-- Sidebar -->
       <aside class="pwc-sidebar">
         <div class="pwc-avatar-ring">
-          <div class="pwc-avatar" id="avatarInitials">—</div>
+          <div class="pwc-avatar" id="sidebarAvatar">
+            <img id="sidebarAvatarImg" class="pwc-avatar-img" alt="" width="72" height="72" hidden>
+            <span id="avatarInitials">—</span>
+          </div>
         </div>
         <div class="pwc-sidebar-name" id="sidebarName">Loading…</div>
         <div class="pwc-sidebar-email" id="sidebarEmail"></div>
@@ -117,6 +123,16 @@ show_reading_time: false
             <div class="pwc-form-group">
               <label for="email">Email Address</label>
               <input type="email" id="email" placeholder="jane@example.com" autocomplete="email">
+            </div>
+            <div class="pwc-form-group">
+              <label>Profile photo</label>
+              <p class="pwc-appearance-desc" style="margin:0 0 0.5rem;">Square crop, up to 3 MB. Drag the crop box to frame your face.</p>
+              <div class="pwc-avatar-edit-row">
+                <input type="file" id="avatarFileInput" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+                <button type="button" class="pwc-btn pwc-btn-border" id="avatarPickBtn">Choose photo…</button>
+                <button type="button" class="pwc-btn pwc-btn-border pwc-btn-danger-outline" id="avatarRemoveBtn" hidden>Remove photo</button>
+              </div>
+              <span class="pwc-save-msg" id="avatarMsg"></span>
             </div>
             <div class="pwc-form-group">
               <label for="bio">Bio</label>
@@ -262,6 +278,21 @@ show_reading_time: false
 
 </div><!-- /#pwc-profile-app -->
 
+<div id="pwcAvatarCropBackdrop" class="pwc-modal-backdrop" hidden data-crop-dismiss></div>
+<div id="pwcAvatarCropModal" class="pwc-modal pwc-modal--avatar-crop" role="dialog" aria-modal="true" aria-labelledby="pwcAvatarCropTitle" tabindex="-1" hidden>
+  <button type="button" class="pwc-modal-close" aria-label="Close crop dialog" data-crop-dismiss>×</button>
+  <h3 id="pwcAvatarCropTitle">Crop your photo</h3>
+  <p>Drag to move, use the grid handles to resize. The result is a square profile picture.</p>
+  <div class="pwc-crop-wrap">
+    <img id="pwcCropperImage" class="pwc-cropper-img" alt="">
+  </div>
+  <div class="pwc-modal-actions pwc-modal-actions--crop">
+    <button type="button" class="pwc-btn pwc-btn-border" data-crop-dismiss>Cancel</button>
+    <button type="button" class="pwc-btn pwc-btn-fill" id="pwcCropSaveBtn">Save photo</button>
+  </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
 <script>
   // Used by profile-api.js and any other client auth helpers.
   window.PWC_API_BASE_URL = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
@@ -271,5 +302,7 @@ show_reading_time: false
 <script src="{{ site.baseurl }}/assets/js/google-oauth.js"></script>
 <script src="{{ site.baseurl }}/assets/js/group-api.js"></script>
 <script src="{{ site.baseurl }}/assets/js/profile-api.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="{{ site.baseurl }}/assets/js/profile-avatar.js"></script>
 <script src="{{ site.baseurl }}/assets/js/profile-messages.js"></script>
 <script src="{{ site.baseurl }}/assets/js/profile.js"></script>
