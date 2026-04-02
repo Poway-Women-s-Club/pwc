@@ -280,6 +280,119 @@
     }
     renderGoogleLinkUi();
 
+    /* ── ML recommendations (TF–IDF + cosine similarity) ─────────────────── */
+
+    var SITE_BASE = (window.PWC_BASE || "/pwc").replace(/\/$/, "");
+
+    function escapeHtmlMl(s) {
+      var d = document.createElement("div");
+      d.textContent = s == null ? "" : String(s);
+      return d.innerHTML;
+    }
+
+    function formatRecDate(iso) {
+      try {
+        var d = new Date(iso);
+        if (isNaN(d.getTime())) return iso;
+        return d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+      } catch (e) {
+        return iso;
+      }
+    }
+
+    function showMlRecMsg(text, isError) {
+      var m = el("pwcMlRecMsg");
+      if (m) showMsg(m, text, isError);
+    }
+
+    function renderMlRecPayload(data) {
+      var out = el("pwcMlRecOutput");
+      if (!out) return;
+      out.hidden = false;
+      var modelNote =
+        data.model
+          ? '<p class="pwc-ml-rec-model">Model: <code>' +
+            escapeHtmlMl(data.model) +
+            "</code> · tokens from your profile: " +
+            (data.profile_tokens || 0) +
+            "</p>"
+          : "";
+      var msg = data.message
+        ? '<p class="pwc-ml-rec-hint">' + escapeHtmlMl(data.message) + "</p>"
+        : "";
+      var gs = data.groups || [];
+      var es = data.events || [];
+      var gHtml = "";
+      if (!gs.length) {
+        gHtml =
+          '<p class="pwc-ml-rec-empty">No group suggestions — you may already belong to all groups, or nothing matched.</p>';
+      } else {
+        gHtml = '<h3 class="pwc-ml-rec-sub">Groups to consider joining</h3><ul class="pwc-ml-rec-list">';
+        gs.forEach(function (g) {
+          var terms = (g.match_terms || [])
+            .map(function (t) {
+              return '<span class="pwc-ml-rec-term">' + escapeHtmlMl(t) + "</span>";
+            })
+            .join(" ");
+          gHtml += "<li><strong>" + escapeHtmlMl(g.name) + "</strong> ";
+          gHtml += '<span class="pwc-ml-rec-score">similarity ' + escapeHtmlMl(String(g.score)) + "</span>";
+          if (terms) gHtml += '<div class="pwc-ml-rec-terms">Overlapping terms: ' + terms + "</div>";
+          gHtml +=
+            '<div class="pwc-ml-rec-actions-row"><a class="pwc-btn pwc-btn-border pwc-btn-sm" href="' +
+            SITE_BASE +
+            '/navigation/groups">Open groups</a></div></li>';
+        });
+        gHtml += "</ul>";
+      }
+      var eHtml = "";
+      if (!es.length) {
+        eHtml =
+          '<p class="pwc-ml-rec-empty">No upcoming event suggestions — nothing matched or no eligible events.</p>';
+      } else {
+        eHtml = '<h3 class="pwc-ml-rec-sub">Upcoming events to consider</h3><ul class="pwc-ml-rec-list">';
+        es.forEach(function (ev) {
+          var terms = (ev.match_terms || [])
+            .map(function (t) {
+              return '<span class="pwc-ml-rec-term">' + escapeHtmlMl(t) + "</span>";
+            })
+            .join(" ");
+          eHtml += "<li><strong>" + escapeHtmlMl(ev.title) + "</strong> ";
+          eHtml += '<span class="pwc-ml-rec-score">similarity ' + escapeHtmlMl(String(ev.score)) + "</span>";
+          eHtml +=
+            '<div class="pwc-ml-rec-meta">' +
+            escapeHtmlMl(formatRecDate(ev.start_time)) +
+            (ev.location ? " · " + escapeHtmlMl(ev.location) : "") +
+            "</div>";
+          if (terms) eHtml += '<div class="pwc-ml-rec-terms">Overlapping terms: ' + terms + "</div>";
+          eHtml +=
+            '<div class="pwc-ml-rec-actions-row"><a class="pwc-btn pwc-btn-border pwc-btn-sm" href="' +
+            SITE_BASE +
+            '/navigation/events">Open calendar</a></div></li>';
+        });
+        eHtml += "</ul>";
+      }
+      out.innerHTML = modelNote + msg + gHtml + eHtml;
+    }
+
+    var mlBtn = el("pwcMlRecBtn");
+    if (mlBtn) {
+      mlBtn.addEventListener("click", function () {
+        mlBtn.disabled = true;
+        showMlRecMsg("Computing recommendations\u2026", false);
+        ProfileAPI.getRecommendations(6, 6)
+          .then(function (data) {
+            renderMlRecPayload(data);
+            showMlRecMsg("Updated.", false);
+          })
+          .catch(function (err) {
+            showMlRecMsg(err.message || "Request failed.", true);
+          })
+          .finally(function () {
+            mlBtn.disabled = false;
+          });
+      });
+    }
+
     /* ── Save profile ───────────────────────────────────────────────────── */
 
     el("saveBtn").addEventListener("click", function () {

@@ -6,7 +6,17 @@
 var BlogAPI = (function () {
   "use strict";
 
-  var BASE     = (typeof API !== "undefined" ? API : "http://localhost:5001");
+  function resolveApiBase() {
+    if (typeof window !== "undefined" && window.PWC_API_BASE_URL) {
+      return String(window.PWC_API_BASE_URL).replace(/\/$/, "");
+    }
+    if (typeof API !== "undefined" && API) {
+      return String(API).replace(/\/$/, "");
+    }
+    return "http://localhost:8327";
+  }
+
+  var BASE     = resolveApiBase();
   var API_BASE = BASE + "/api/blog";
 
   function getCurrentUser() {

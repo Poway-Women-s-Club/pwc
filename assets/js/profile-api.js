@@ -6,10 +6,12 @@
 var ProfileAPI = (function () {
   "use strict";
 
-  var API_BASE_URL = (window.PWC_API_BASE_URL || "http://localhost:8327").replace(/\/$/, "");
+  function apiBase() {
+    return (window.PWC_API_BASE_URL || "http://localhost:8327").replace(/\/$/, "");
+  }
 
   function validateSession() {
-    return fetch(API_BASE_URL + "/api/auth/me", { credentials: "include" })
+    return fetch(apiBase() + "/api/auth/me", { credentials: "include" })
       .then(function (res) {
         if (!res.ok) throw new Error("Not authenticated");
         return res.json();
@@ -17,7 +19,7 @@ var ProfileAPI = (function () {
   }
 
   function saveProfile(data) {
-    return fetch(API_BASE_URL + "/api/profile/me", {
+    return fetch(apiBase() + "/api/profile/me", {
       method:      "PUT",
       credentials: "include",
       headers:     { "Content-Type": "application/json" },
@@ -31,7 +33,7 @@ var ProfileAPI = (function () {
   }
 
   function changePassword(currentPassword, newPassword, confirmPassword) {
-    return fetch(API_BASE_URL + "/api/profile/password", {
+    return fetch(apiBase() + "/api/profile/password", {
       method:      "PUT",
       credentials: "include",
       headers:     { "Content-Type": "application/json" },
@@ -49,7 +51,7 @@ var ProfileAPI = (function () {
   }
 
   function logout() {
-    return fetch(API_BASE_URL + "/api/auth/logout", {
+    return fetch(apiBase() + "/api/auth/logout", {
       method:      "POST",
       credentials: "include",
     }).catch(function () {});
@@ -65,7 +67,7 @@ var ProfileAPI = (function () {
   function uploadAvatar(blob) {
     var fd = new FormData();
     fd.append("file", blob, "avatar.jpg");
-    return fetch(API_BASE_URL + "/api/profile/avatar", {
+    return fetch(apiBase() + "/api/profile/avatar", {
       method:      "POST",
       credentials: "include",
       body:        fd,
@@ -78,12 +80,26 @@ var ProfileAPI = (function () {
   }
 
   function deleteAvatar() {
-    return fetch(API_BASE_URL + "/api/profile/avatar", {
+    return fetch(apiBase() + "/api/profile/avatar", {
       method:      "DELETE",
       credentials: "include",
     }).then(function (res) {
       return res.json().then(function (body) {
         if (!res.ok) throw new Error((body && body.error) || "Failed to remove photo.");
+        return body;
+      });
+    });
+  }
+
+  function getRecommendations(topGroups, topEvents) {
+    var g = topGroups != null ? topGroups : 5;
+    var e = topEvents != null ? topEvents : 5;
+    var q = "?top_groups=" + encodeURIComponent(g) + "&top_events=" + encodeURIComponent(e);
+    return fetch(apiBase() + "/api/profile/recommendations" + q, {
+      credentials: "include",
+    }).then(function (res) {
+      return res.json().then(function (body) {
+        if (!res.ok) throw new Error((body && body.error) || "Recommendations failed.");
         return body;
       });
     });
@@ -97,6 +113,7 @@ var ProfileAPI = (function () {
     linkGoogle:      linkGoogle,
     uploadAvatar:    uploadAvatar,
     deleteAvatar:    deleteAvatar,
+    getRecommendations: getRecommendations,
   };
 
 })();

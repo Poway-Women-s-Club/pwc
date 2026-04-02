@@ -1334,6 +1334,120 @@ code, pre {
   line-height: 1.55;
 }
 
+/* ML recommendations (profile overview) */
+.pwc-ml-rec-card {
+  border-left-color: rgba(90, 110, 140, 0.85);
+}
+
+.pwc-ml-rec-desc {
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 0.84rem;
+  color: var(--pwc-text);
+  line-height: 1.55;
+  margin: 0 0 0.75rem;
+}
+
+.pwc-ml-rec-desc strong {
+  font-weight: 700;
+  color: var(--pwc-charcoal);
+}
+
+.pwc-ml-rec-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.5rem;
+}
+
+.pwc-ml-rec-output {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--pwc-border);
+}
+
+.pwc-ml-rec-model {
+  font-size: 0.78rem;
+  color: var(--pwc-muted);
+  margin: 0 0 0.75rem;
+}
+
+.pwc-ml-rec-model code {
+  font-size: 0.85em;
+  background: var(--pwc-cream);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+.pwc-ml-rec-hint,
+.pwc-ml-rec-empty {
+  font-size: 0.85rem;
+  color: var(--pwc-muted);
+  margin: 0 0 0.75rem;
+}
+
+.pwc-ml-rec-sub {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.05rem;
+  margin: 0.75rem 0 0.4rem;
+  color: var(--pwc-charcoal);
+}
+
+.pwc-ml-rec-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.pwc-ml-rec-list li {
+  padding: 0.65rem 0.75rem;
+  background: var(--pwc-cream);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.pwc-ml-rec-score {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--pwc-sage-dark);
+  margin-left: 0.35rem;
+}
+
+.pwc-ml-rec-meta {
+  font-size: 0.8rem;
+  color: var(--pwc-muted);
+  margin-top: 0.25rem;
+}
+
+.pwc-ml-rec-terms {
+  font-size: 0.78rem;
+  color: var(--pwc-text);
+  margin-top: 0.35rem;
+  line-height: 1.45;
+}
+
+.pwc-ml-rec-term {
+  display: inline-block;
+  background: rgba(122, 142, 107, 0.18);
+  color: var(--pwc-sage-dark);
+  padding: 0.12rem 0.4rem;
+  border-radius: 4px;
+  margin: 0.1rem 0.25rem 0 0;
+  font-weight: 600;
+}
+
+.pwc-ml-rec-actions-row {
+  margin-top: 0.5rem;
+}
+
+.pwc-btn-sm {
+  font-size: 0.78rem;
+  padding: 0.35rem 0.75rem;
+}
+
 /* Tags */
 .pwc-tag-list {
   display: flex;

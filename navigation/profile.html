@@ -100,6 +100,18 @@ show_reading_time: false
               <span class="pwc-info-label">My Groups</span>
               <div class="pwc-tag-list" id="ov-groups"></div>
             </div>
+            <div class="pwc-info-card pwc-info-card--wide pwc-ml-rec-card">
+              <span class="pwc-info-label">Suggested for you (ML)</span>
+              <p class="pwc-ml-rec-desc">
+                The server scores upcoming events and groups you are not in yet against your bio, interests, and languages
+                using <strong>TF‑IDF</strong> term weighting and <strong>cosine similarity</strong> — the same family of models used in search and recommender systems.
+              </p>
+              <div class="pwc-ml-rec-actions">
+                <button type="button" class="pwc-btn pwc-btn-fill" id="pwcMlRecBtn">Run recommendation engine</button>
+                <span class="pwc-save-msg" id="pwcMlRecMsg"></span>
+              </div>
+              <div id="pwcMlRecOutput" class="pwc-ml-rec-output" hidden></div>
+            </div>
           </div>
         </section>
 
@@ -292,17 +304,18 @@ show_reading_time: false
   </div>
 </div>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="{{ site.baseurl }}/assets/css/cropper.min.css">
 <script>
-  // Used by profile-api.js and any other client auth helpers.
+  // Used by profile-api.js, group-api.js, google-oauth.js (same origin as login/blog/groups).
   window.PWC_API_BASE_URL = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
     ? "{{ site.events_api_local_url | default: 'http://localhost:8327' | escape }}"
     : "{{ site.events_api_base_url | escape }}";
+  window.API = window.PWC_API_BASE_URL;
 </script>
 <script src="{{ site.baseurl }}/assets/js/google-oauth.js"></script>
 <script src="{{ site.baseurl }}/assets/js/group-api.js"></script>
 <script src="{{ site.baseurl }}/assets/js/profile-api.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="{{ site.baseurl }}/assets/js/cropper.min.js"></script>
 <script src="{{ site.baseurl }}/assets/js/profile-avatar.js"></script>
 <script src="{{ site.baseurl }}/assets/js/profile-messages.js"></script>
 <script src="{{ site.baseurl }}/assets/js/profile.js"></script>

@@ -5,7 +5,7 @@
 (function (global) {
   'use strict';
 
-  var API_BASE = (global.PWC_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+  var API_BASE = (global.PWC_API_BASE_URL || 'http://localhost:8327').replace(/\/$/, '');
 
   function loadScript(src) {
     return new Promise(function (resolve, reject) {
