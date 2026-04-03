@@ -29,6 +29,7 @@ minima:
     - navigation/events.md
     - navigation/blog.html
     - navigation/groups.html
+    - navigation/garden.html
     - navigation/contact.md
 
 # Event scheduling / signup endpoints.

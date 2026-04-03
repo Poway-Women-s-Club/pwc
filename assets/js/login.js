@@ -34,13 +34,7 @@
   }
 
   function networkHelpMessage() {
-    return (
-      'Cannot reach the member API at ' + API_BASE_URL + '. ' +
-      'Confirm _config.yml → events_api_base_url is your real Flask URL (no typos in the hostname). ' +
-      'Open ' + API_BASE_URL + '/api/health in a new tab — you should see {"status":"ok"}. ' +
-      'If that fails, fix DNS / HTTPS / your server (HTTP/2 proxy errors often need nginx/Caddy tweaks), ' +
-      'then rebuild GitHub Pages and hard-refresh.'
-    );
+    return "We're having trouble connecting. Please try again in a moment.";
   }
 
   function showApiError(err) {
