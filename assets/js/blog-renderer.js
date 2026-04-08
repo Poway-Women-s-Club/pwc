@@ -244,77 +244,6 @@ var BlogRenderer = (function () {
     document.getElementById("blog-detail-content").innerHTML = '<div class="pwc-blog-empty">Could not load post.</div>';
   }
 
-  /* ── Author profile modal ────────────────────────────────────────────── */
-
-  function showAuthorProfileLoading() {
-    var modal = document.getElementById("blog-author-modal");
-    var body  = document.getElementById("blog-author-modal-body");
-    if (!modal || !body) return;
-    body.innerHTML = '<div class="pwc-author-modal-loading">Loading profile…</div>';
-    modal.style.display = "flex";
-    document.body.style.overflow = "hidden";
-  }
-
-  function renderAuthorProfile(user, friendStatus, currentUser) {
-    var body = document.getElementById("blog-author-modal-body");
-    if (!body) return;
-
-    var url = (user.avatar_url || "").trim();
-    if (url && location.protocol === "https:" && url.indexOf("http://") === 0) {
-      url = "https://" + url.slice("http://".length);
-    }
-
-    var avatarHtml = url
-      ? '<img src="' + escapeHtml(url) + '" class="pwc-author-modal-avatar-img" alt="">'
-      : '<span class="pwc-author-modal-avatar-initials">'
-          + escapeHtml(((user.firstName || "").charAt(0) + (user.lastName || "").charAt(0)).toUpperCase() || "?")
-          + '</span>';
-
-    var name = ((user.firstName || "") + " " + (user.lastName || "")).trim() || user.username || "Member";
-
-    var bioHtml = user.bio
-      ? '<p class="pwc-author-modal-bio">' + escapeHtml(user.bio) + '</p>'
-      : '';
-
-    var tagHtml = "";
-    var interests = user.interests || [];
-    if (interests.length) {
-      tagHtml = '<div class="pwc-author-modal-tags">'
-        + interests.map(function (t) { return '<span class="pwc-tag pwc-tag--rose">' + escapeHtml(t) + '</span>'; }).join("")
-        + '</div>';
-    }
-
-    var friendBtnHtml = "";
-    if (currentUser && user.id !== currentUser.id) {
-      friendBtnHtml = '<div class="pwc-author-modal-friend" id="author-modal-friend-' + user.id + '">'
-        + friendButtonHtml(user.id, friendStatus)
-        + '</div>';
-    }
-
-    body.innerHTML =
-      '<div class="pwc-author-modal-avatar">' + avatarHtml + '</div>' +
-      '<div class="pwc-author-modal-name">'   + escapeHtml(name)            + '</div>' +
-      '<div class="pwc-author-modal-username">@' + escapeHtml(user.username || "") + '</div>' +
-      bioHtml + tagHtml + friendBtnHtml;
-  }
-
-  function showAuthorProfileError() {
-    var body = document.getElementById("blog-author-modal-body");
-    if (body) body.innerHTML = '<div class="pwc-author-modal-loading">Could not load profile.</div>';
-  }
-
-  function hideAuthorProfile() {
-    var modal = document.getElementById("blog-author-modal");
-    if (modal) modal.style.display = "none";
-    document.body.style.overflow = "";
-  }
-
-  /* Update the friend button inside the author modal */
-  function updateModalFriendButton(authorId, status) {
-    var wrap = document.getElementById("author-modal-friend-" + authorId);
-    if (wrap) wrap.innerHTML = friendButtonHtml(authorId, status);
-  }
-
   /* ── Misc UI ─────────────────────────────────────────────────────────── */
 
   function setNewPostButton(visible) {
@@ -323,21 +252,16 @@ var BlogRenderer = (function () {
   }
 
   return {
-    renderPosts:              renderPosts,
-    renderPagination:         renderPagination,
-    renderPostDetail:         renderPostDetail,
-    renderAuthorFilter:       renderAuthorFilter,
-    showLoading:              showLoading,
-    showError:                showError,
-    showDetailLoading:        showDetailLoading,
-    showDetailError:          showDetailError,
-    setNewPostButton:         setNewPostButton,
-    updateFriendButton:       updateFriendButton,
-    showAuthorProfileLoading: showAuthorProfileLoading,
-    renderAuthorProfile:      renderAuthorProfile,
-    showAuthorProfileError:   showAuthorProfileError,
-    hideAuthorProfile:        hideAuthorProfile,
-    updateModalFriendButton:  updateModalFriendButton,
+    renderPosts:        renderPosts,
+    renderPagination:   renderPagination,
+    renderPostDetail:   renderPostDetail,
+    renderAuthorFilter: renderAuthorFilter,
+    showLoading:        showLoading,
+    showError:          showError,
+    showDetailLoading:  showDetailLoading,
+    showDetailError:    showDetailError,
+    setNewPostButton:   setNewPostButton,
+    updateFriendButton: updateFriendButton,
   };
 
 })();

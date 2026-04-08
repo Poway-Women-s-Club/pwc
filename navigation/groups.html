@@ -92,6 +92,8 @@ var API = (location.hostname === "localhost" || location.hostname === "127.0.0.1
   ? "{{ site.events_api_local_url | default: 'http://localhost:8327' | escape }}"
   : "{{ site.events_api_base_url | escape }}";
 </script>
-<script src="{{ '/assets/js/group-api.js'      | relative_url }}"></script>
-<script src="{{ '/assets/js/group-renderer.js'  | relative_url }}"></script>
-<script src="{{ '/assets/js/groups.js'          | relative_url }}"></script>
+<script src="{{ '/assets/js/group-api.js'          | relative_url }}"></script>
+<script src="{{ '/assets/js/friends-api.js'        | relative_url }}"></script>
+<script src="{{ '/assets/js/group-renderer.js'     | relative_url }}"></script>
+<script src="{{ '/assets/js/user-profile-modal.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/groups.js'             | relative_url }}"></script>

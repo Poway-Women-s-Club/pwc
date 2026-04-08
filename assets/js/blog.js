@@ -33,13 +33,17 @@ var Blog = (function () {
         if (u) sessionStorage.setItem("pwc_user", JSON.stringify(u));
         else   sessionStorage.removeItem("pwc_user");
         BlogRenderer.setNewPostButton(!!currentUser);
+        UserProfileModal.init(currentUser, { onStatusChange: BlogRenderer.updateFriendButton });
         if (currentUser && typeof GroupAPI !== "undefined") {
           GroupAPI.getMyGroups()
             .then(function (groups) { myGroups = groups || []; })
             .catch(function () { myGroups = []; });
         }
       })
-      .catch(function () { BlogRenderer.setNewPostButton(!!currentUser); });
+      .catch(function () {
+        BlogRenderer.setNewPostButton(!!currentUser);
+        UserProfileModal.init(currentUser, { onStatusChange: BlogRenderer.updateFriendButton });
+      });
 
     bindEvents();
     loadPosts();
@@ -285,25 +289,11 @@ var Blog = (function () {
   /* ── Author profile modal ────────────────────────────────────────────── */
 
   function openAuthorProfile(authorId) {
-    if (!currentUser || typeof FriendsAPI === "undefined") return;
-    BlogRenderer.showAuthorProfileLoading();
-
-    Promise.all([
-      FriendsAPI.getUser(authorId),
-      FriendsAPI.getStatus(authorId),
-    ])
-      .then(function (results) {
-        BlogRenderer.renderAuthorProfile(results[0], results[1].status, currentUser);
-      })
-      .catch(function () {
-        BlogRenderer.showAuthorProfileError();
-      });
+    UserProfileModal.open(authorId);
   }
 
   function closeAuthorProfile(e) {
-    /* Allow clicking the backdrop to close, but not clicks inside the card */
-    if (e && e.target !== document.getElementById("blog-author-modal")) return;
-    BlogRenderer.hideAuthorProfile();
+    UserProfileModal.close(e);
   }
 
   /* ── Friend actions ──────────────────────────────────────────────────── */
@@ -313,7 +303,7 @@ var Blog = (function () {
     FriendsAPI.sendRequest(authorId)
       .then(function () {
         BlogRenderer.updateFriendButton(authorId, "pending_sent");
-        BlogRenderer.updateModalFriendButton(authorId, "pending_sent");
+        UserProfileModal.updateFriendButton(authorId, "pending_sent");
       })
       .catch(function (err) { alert(err.message); });
   }
@@ -323,7 +313,7 @@ var Blog = (function () {
     FriendsAPI.accept(authorId)
       .then(function () {
         BlogRenderer.updateFriendButton(authorId, "accepted");
-        BlogRenderer.updateModalFriendButton(authorId, "accepted");
+        UserProfileModal.updateFriendButton(authorId, "accepted");
       })
       .catch(function (err) { alert(err.message); });
   }
@@ -333,7 +323,7 @@ var Blog = (function () {
     FriendsAPI.decline(authorId)
       .then(function () {
         BlogRenderer.updateFriendButton(authorId, "none");
-        BlogRenderer.updateModalFriendButton(authorId, "none");
+        UserProfileModal.updateFriendButton(authorId, "none");
       })
       .catch(function (err) { alert(err.message); });
   }

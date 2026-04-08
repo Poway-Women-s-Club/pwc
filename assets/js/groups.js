@@ -19,6 +19,10 @@ var Groups = (function () {
       try { currentUser = JSON.parse(stored); } catch (_) { currentUser = null; }
     }
 
+    if (typeof UserProfileModal !== "undefined") {
+      UserProfileModal.init(currentUser, null);
+    }
+
     GroupAPI.getMyGroups()
       .then(function (groups) {
         myGroupIds = groups.map(function (g) { return g.id; });
@@ -245,6 +249,14 @@ var Groups = (function () {
       });
   }
 
+  /* ── Member profile ──────────────────────────────────────────────────── */
+
+  function openMemberProfile(memberId) {
+    if (typeof UserProfileModal !== "undefined") {
+      UserProfileModal.open(memberId);
+    }
+  }
+
   function deleteGroup(groupId) {
     if (!confirm("Delete this group? All members will be removed.")) return;
     GroupAPI.deleteGroup(groupId)
@@ -282,6 +294,7 @@ var Groups = (function () {
     submitApply:         submitApply,
     approveApplication:  approveApplication,
     denyApplication:     denyApplication,
+    openMemberProfile:   openMemberProfile,
   };
 
 })();

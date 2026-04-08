@@ -138,10 +138,15 @@ var GroupRenderer = (function () {
     if (group.members && group.members.length > 0) {
       group.members.forEach(function (m) {
         var name = ((m.firstName || "") + " " + (m.lastName || "")).trim() || m.username;
+        var isOther = currentUser && m.id && m.id !== currentUser.id;
+        var nameHtml = isOther
+          ? '<button class="pwc-blog-author-btn" onclick="Groups.openMemberProfile(' + m.id + ')" title="View profile">'
+              + escapeHtml(name) + '</button>'
+          : '<span class="pwc-groups-member-name">' + escapeHtml(name) + '</span>';
         html += '<div class="pwc-groups-member">'
           + '<div class="pwc-groups-member-avatar">' + escapeHtml((m.firstName || "?").charAt(0) + (m.lastName || "").charAt(0)) + '</div>'
           + '<div class="pwc-groups-member-info">'
-          +   '<span class="pwc-groups-member-name">' + escapeHtml(name) + '</span>'
+          +   nameHtml
           +   '<span class="pwc-groups-member-username">@' + escapeHtml(m.username) + '</span>'
           + '</div>'
           + '</div>';
