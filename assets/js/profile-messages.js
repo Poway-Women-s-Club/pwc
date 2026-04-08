@@ -1,7 +1,8 @@
 /* ==========================================================================
-   ProfileMessages — the complete direct-messaging (DM) feature.
-   Single responsibility: manage, store, and render member conversations.
-   Depends on: nothing. Call ProfileMessages.init(user) to activate.
+   ProfileMessages — direct-messaging (DM) feature backed by the real API.
+   Replaces the old localStorage demo with live /api/messages endpoints.
+   Depends on: FriendsAPI (must be loaded first).
+   Call ProfileMessages.init(user) to activate.
    ========================================================================== */
 
 var ProfileMessages = (function () {
@@ -10,27 +11,28 @@ var ProfileMessages = (function () {
   /* ── Private state ───────────────────────────────────────────────────── */
 
   var currentUser   = null;
-  var activeContact = null;
-  var DEMO_CONTACTS = [];
+  var activeContact = null;   /* user object from API */
+  var conversations = [];     /* from GET /api/messages/conversations */
+  var threadCache   = {};     /* userId → messages array */
 
   /* ── Helpers ─────────────────────────────────────────────────────────── */
 
   function el(id) { return document.getElementById(id); }
 
   function escapeHtml(str) {
-    return str
+    return String(str)
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
   }
 
-  function formatTime(ts) {
-    return new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  function formatTime(iso) {
+    return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   }
 
-  function formatDate(ts) {
-    var d         = new Date(ts);
+  function formatDate(iso) {
+    var d         = new Date(iso);
     var today     = new Date();
     var yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
@@ -39,105 +41,89 @@ var ProfileMessages = (function () {
     return d.toLocaleDateString([], { month: "short", day: "numeric" });
   }
 
-  /* ── Message storage (localStorage) ─────────────────────────────────── */
-
-  function dmKey(a, b) {
-    return "pwc_dm_" + [a, b].sort().join("_");
+  function userInitials(u) {
+    return ((u.firstName || "").charAt(0) + (u.lastName || "").charAt(0)).toUpperCase() || "?";
   }
 
-  function loadMessages(contactUsername) {
-    try {
-      return JSON.parse(localStorage.getItem(dmKey(currentUser.username, contactUsername))) || [];
-    } catch (_) { return []; }
-  }
-
-  function saveMessages(contactUsername, msgs) {
-    localStorage.setItem(dmKey(currentUser.username, contactUsername), JSON.stringify(msgs));
-  }
-
-  /* ── Demo message seeding ────────────────────────────────────────────── */
-
-  function seedDemo() {
-    var seeds = {
-      "admin": [
-        { from: "admin", text: "Welcome to Poway Woman's Club! Let us know if you have any questions.", ts: Date.now() - 86400000 * 2 },
-        { from: "admin", text: "Our next meeting is on the 2nd Tuesday. Hope to see you there!",        ts: Date.now() - 86400000 },
-      ],
-      "jsmith": [
-        { from: "jsmith", text: "Hi! Great to meet you at last month's meeting.", ts: Date.now() - 3600000 * 5 },
-      ],
-    };
-    Object.keys(seeds).forEach(function (contact) {
-      var key = dmKey(currentUser.username, contact);
-      if (!localStorage.getItem(key)) {
-        localStorage.setItem(key, JSON.stringify(seeds[contact]));
-      }
-    });
+  function userDisplayName(u) {
+    var name = ((u.firstName || "") + " " + (u.lastName || "")).trim();
+    return name || u.username || "Member";
   }
 
   /* ── Unread badge ────────────────────────────────────────────────────── */
 
-  function countUnread(contactUsername) {
-    var msgs     = loadMessages(contactUsername);
-    var lastRead = parseInt(
-      localStorage.getItem("pwc_lastread_" + dmKey(currentUser.username, contactUsername)) || "0",
-      10
-    );
-    return msgs.filter(function (m) { return m.from !== currentUser.username && m.ts > lastRead; }).length;
-  }
-
-  function markRead(contactUsername) {
-    localStorage.setItem(
-      "pwc_lastread_" + dmKey(currentUser.username, contactUsername),
-      String(Date.now())
-    );
-    updateUnreadBadge();
-  }
-
-  function totalUnread() {
-    return DEMO_CONTACTS.reduce(function (sum, c) { return sum + countUnread(c.username); }, 0);
-  }
-
   function updateUnreadBadge() {
-    var n     = totalUnread();
-    var badge = el("unreadBadge");
-    if (n > 0) { badge.style.display = ""; badge.textContent = n > 99 ? "99+" : String(n); }
-    else        { badge.style.display = "none"; }
+    FriendsAPI.getUnreadCount()
+      .then(function (data) {
+        var n     = data.unread || 0;
+        var badge = el("unreadBadge");
+        if (!badge) return;
+        if (n > 0) { badge.style.display = ""; badge.textContent = n > 99 ? "99+" : String(n); }
+        else        { badge.style.display = "none"; }
+      })
+      .catch(function () {});
   }
 
   /* ── Conversation list ───────────────────────────────────────────────── */
 
+  function loadConversations() {
+    FriendsAPI.getConversations()
+      .then(function (data) {
+        conversations = data || [];
+        renderDmList(el("dmSearch") ? el("dmSearch").value : "");
+      })
+      .catch(function () {
+        conversations = [];
+        renderDmList("");
+      });
+  }
+
   function renderDmList(filter) {
     filter = (filter || "").toLowerCase();
     var list = el("dmList");
+    if (!list) return;
     list.innerHTML = "";
 
-    DEMO_CONTACTS.forEach(function (contact) {
-      if (filter && !(contact.firstName + " " + contact.lastName).toLowerCase().includes(filter)) return;
+    if (!conversations.length) {
+      var empty = document.createElement("li");
+      empty.className = "pwc-dm-list-empty";
+      empty.textContent = "No conversations yet. Add friends and start messaging!";
+      list.appendChild(empty);
+      return;
+    }
 
-      var msgs     = loadMessages(contact.username);
-      var last     = msgs[msgs.length - 1];
-      var unread   = countUnread(contact.username);
-      var initials = (contact.firstName.charAt(0) + contact.lastName.charAt(0)).toUpperCase();
+    conversations.forEach(function (convo) {
+      var contact = convo.user;
+      var name    = userDisplayName(contact);
+      if (filter && !name.toLowerCase().includes(filter)) return;
+
+      var last    = convo.last_message;
+      var unread  = convo.unread_count || 0;
+      var isActive = activeContact && activeContact.id === contact.id;
 
       var li = document.createElement("li");
       li.className = "pwc-dm-item"
-        + (unread                              ? " has-unread" : "")
-        + (activeContact === contact.username  ? " active"     : "");
+        + (unread   ? " has-unread" : "")
+        + (isActive ? " active"     : "");
+
+      var lastPreview = "";
+      if (last) {
+        lastPreview = last.sender_id === currentUser.id
+          ? "You: " + escapeHtml(last.body)
+          : escapeHtml(last.body);
+      } else {
+        lastPreview = "No messages yet";
+      }
 
       li.innerHTML =
-        '<div class="pwc-dm-item-avatar">' + initials + "</div>" +
+        '<div class="pwc-dm-item-avatar">' + escapeHtml(userInitials(contact)) + "</div>" +
         '<div class="pwc-dm-item-body">' +
-          '<div class="pwc-dm-item-name">' + contact.firstName + " " + contact.lastName + "</div>" +
-          '<div class="pwc-dm-item-preview">' +
-            (last
-              ? (last.from === currentUser.username ? "You: " : "") + escapeHtml(last.text)
-              : "No messages yet") +
-          "</div>" +
+          '<div class="pwc-dm-item-name">' + escapeHtml(name) + "</div>" +
+          '<div class="pwc-dm-item-preview">' + lastPreview + "</div>" +
         "</div>" +
         '<div class="pwc-dm-item-meta">' +
-          '<div class="pwc-dm-item-time">'   + (last ? formatTime(last.ts) : "") + "</div>" +
-          '<div class="pwc-dm-item-unread">' + (unread || "")                    + "</div>" +
+          '<div class="pwc-dm-item-time">'   + (last ? formatTime(last.created_at) : "") + "</div>" +
+          '<div class="pwc-dm-item-unread">' + (unread || "")                            + "</div>" +
         "</div>";
 
       li.addEventListener("click", function () { openConvo(contact); });
@@ -148,45 +134,89 @@ var ProfileMessages = (function () {
   /* ── Active conversation ─────────────────────────────────────────────── */
 
   function openConvo(contact) {
-    activeContact = contact.username;
-    markRead(contact.username);
+    activeContact = contact;
 
-    var initials = (contact.firstName.charAt(0) + contact.lastName.charAt(0)).toUpperCase();
-    el("convoAvatar").textContent = initials;
-    el("convoName").textContent   = contact.firstName + " " + contact.lastName;
-    el("convoStatus").textContent = contact.role;
+    el("convoAvatar").textContent = userInitials(contact);
+    el("convoName").textContent   = userDisplayName(contact);
+    el("convoStatus").textContent = contact.role || "Member";
 
     el("dmEmpty").style.display = "none";
     el("dmConvo").style.display = "flex";
 
-    renderMessages(contact.username);
-    renderDmList(el("dmSearch").value);
-    el("dmInput").focus();
+    renderDmList(el("dmSearch") ? el("dmSearch").value : "");
+
+    /* Load thread from API */
+    FriendsAPI.getThread(contact.id)
+      .then(function (data) {
+        threadCache[contact.id] = data.messages || [];
+        renderMessages(threadCache[contact.id]);
+        /* Mark as read */
+        FriendsAPI.markRead(contact.id)
+          .then(function () {
+            /* Update unread count in conversation list */
+            conversations.forEach(function (c) {
+              if (c.user.id === contact.id) c.unread_count = 0;
+            });
+            renderDmList(el("dmSearch") ? el("dmSearch").value : "");
+            updateUnreadBadge();
+          })
+          .catch(function () {});
+      })
+      .catch(function (err) {
+        var container = el("dmMessages");
+        container.innerHTML = '<div class="pwc-dm-thread-error">' + escapeHtml(err.message || "Could not load messages") + '</div>';
+      });
+
+    if (el("dmInput")) el("dmInput").focus();
   }
 
-  function renderMessages(contactUsername) {
-    var msgs      = loadMessages(contactUsername);
+  /* Open a conversation by user ID — called from Friends page "Message" button */
+  function openConvoById(userId, userInfo) {
+    /* Check if we already have a conversation with this user */
+    var existing = null;
+    for (var i = 0; i < conversations.length; i++) {
+      if (conversations[i].user.id === userId) { existing = conversations[i].user; break; }
+    }
+    if (existing) {
+      openConvo(existing);
+      return;
+    }
+    /* New conversation — use the provided user info */
+    if (userInfo) {
+      openConvo(userInfo);
+    }
+  }
+
+  function renderMessages(messages) {
     var container = el("dmMessages");
+    if (!container) return;
     container.innerHTML = "";
 
-    var lastDate = null;
+    if (!messages || messages.length === 0) {
+      var hint = document.createElement("div");
+      hint.className = "pwc-dm-thread-hint";
+      hint.textContent = "No messages yet. Say hello!";
+      container.appendChild(hint);
+      return;
+    }
 
-    msgs.forEach(function (msg) {
-      var dateLabel = formatDate(msg.ts);
+    var lastDate = null;
+    messages.forEach(function (msg) {
+      var dateLabel = formatDate(msg.created_at);
       if (dateLabel !== lastDate) {
         lastDate = dateLabel;
         var divider = document.createElement("div");
         divider.className = "pwc-dm-date-divider";
-        divider.innerHTML = "<span>" + dateLabel + "</span>";
+        divider.innerHTML = "<span>" + escapeHtml(dateLabel) + "</span>";
         container.appendChild(divider);
       }
 
-      var isMine = msg.from === currentUser.username;
+      var isMine = msg.sender_id === currentUser.id;
       var wrap   = document.createElement("div");
       wrap.className = "pwc-dm-bubble-wrap " + (isMine ? "mine" : "theirs");
       wrap.innerHTML =
-        '<div class="pwc-dm-bubble">'      + escapeHtml(msg.text) + "</div>" +
-        '<div class="pwc-dm-bubble-time">' + formatTime(msg.ts)   + "</div>";
+        '<div class="pwc-dm-bubble">'      + escapeHtml(msg.body)        + "</div>" +
+        '<div class="pwc-dm-bubble-time">' + formatTime(msg.created_at)  + "</div>";
       container.appendChild(wrap);
     });
 
@@ -201,59 +231,70 @@ var ProfileMessages = (function () {
     var text  = input.value.trim();
     if (!text) return;
 
-    var msgs = loadMessages(activeContact);
-    msgs.push({ from: currentUser.username, text: text, ts: Date.now() });
-    saveMessages(activeContact, msgs);
-    markRead(activeContact);
+    var sendBtn = el("dmSend");
+    if (sendBtn) sendBtn.disabled = true;
 
-    input.value        = "";
-    input.style.height = "";
-    renderMessages(activeContact);
-    renderDmList(el("dmSearch").value);
+    FriendsAPI.sendMessage(activeContact.id, text)
+      .then(function (msg) {
+        input.value        = "";
+        input.style.height = "";
+
+        /* Append new message to cache and re-render */
+        if (!threadCache[activeContact.id]) threadCache[activeContact.id] = [];
+        threadCache[activeContact.id].push(msg);
+        renderMessages(threadCache[activeContact.id]);
+
+        /* Refresh conversation list to update preview */
+        loadConversations();
+      })
+      .catch(function (err) {
+        alert(err.message || "Could not send message.");
+      })
+      .finally(function () {
+        if (sendBtn) sendBtn.disabled = false;
+      });
   }
 
   /* ── Event binding ───────────────────────────────────────────────────── */
 
   function bindEvents() {
-    el("dmSend").addEventListener("click", sendMessage);
+    var sendBtn = el("dmSend");
+    if (sendBtn) sendBtn.addEventListener("click", sendMessage);
 
-    el("dmInput").addEventListener("keydown", function (e) {
-      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-    });
+    var input = el("dmInput");
+    if (input) {
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+      });
+      input.addEventListener("input", function () {
+        this.style.height = "";
+        this.style.height = Math.min(this.scrollHeight, 120) + "px";
+      });
+    }
 
-    el("dmInput").addEventListener("input", function () {
-      this.style.height = "";
-      this.style.height = Math.min(this.scrollHeight, 120) + "px";
-    });
-
-    el("dmSearch").addEventListener("input", function () {
-      renderDmList(this.value);
-    });
+    var searchInput = el("dmSearch");
+    if (searchInput) {
+      searchInput.addEventListener("input", function () {
+        renderDmList(this.value);
+      });
+    }
   }
 
   /* ── Public init ─────────────────────────────────────────────────────── */
 
   function init(user) {
     currentUser = user;
-
-    DEMO_CONTACTS = [
-      { username: "admin",   firstName: "Club",    lastName: "Admin",  role: "Administrator" },
-      { username: "jsmith",  firstName: "Joan",    lastName: "Smith",  role: "Member" },
-      { username: "mlopez",  firstName: "Maria",   lastName: "Lopez",  role: "Member" },
-      { username: "bchang",  firstName: "Barbara", lastName: "Chang",  role: "Member" },
-      { username: "rwilson", firstName: "Ruth",    lastName: "Wilson", role: "Member" },
-    ].filter(function (c) { return c.username !== user.username; });
-
-    seedDemo();
     bindEvents();
-    renderDmList();
+    loadConversations();
     updateUnreadBadge();
   }
 
   return {
     init:              init,
+    openConvoById:     openConvoById,
     renderDmList:      renderDmList,
     updateUnreadBadge: updateUnreadBadge,
+    reload:            loadConversations,
   };
 
 })();

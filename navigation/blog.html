@@ -81,6 +81,14 @@ permalink: /navigation/blog/
     </div>
   </div>
 
+  <!-- ── Author Profile Modal ── -->
+  <div id="blog-author-modal" class="pwc-blog-overlay" style="display:none;" onclick="Blog.closeAuthorProfile(event)">
+    <div class="pwc-author-modal-card" onclick="event.stopPropagation()">
+      <button class="pwc-blog-close" onclick="Blog.closeAuthorProfile()">&times;</button>
+      <div id="blog-author-modal-body"></div>
+    </div>
+  </div>
+
   <!-- ── Pin Modal (admin) ── -->
   <div id="blog-pin-overlay" class="pwc-blog-overlay" style="display:none;">
     <div class="pwc-blog-pin-card">
@@ -105,6 +113,7 @@ var API = (location.hostname === "localhost" || location.hostname === "127.0.0.1
   : "{{ site.events_api_base_url | escape }}";
 </script>
 <script src="{{ '/assets/js/group-api.js'      | relative_url }}"></script>
+<script src="{{ '/assets/js/friends-api.js'    | relative_url }}"></script>
 <script src="{{ '/assets/js/blog-api.js'       | relative_url }}"></script>
 <script src="{{ '/assets/js/blog-renderer.js'  | relative_url }}"></script>
 <script src="{{ '/assets/js/blog.js'           | relative_url }}"></script>

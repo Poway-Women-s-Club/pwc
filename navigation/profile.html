@@ -25,6 +25,10 @@ show_reading_time: false
       <button class="pwc-topbar-tab active" data-view="profile">
         Profile
       </button>
+      <button class="pwc-topbar-tab" data-view="friends">
+        Friends
+        <span class="pwc-topbar-badge" id="friendRequestBadge" style="display:none;">0</span>
+      </button>
       <button class="pwc-topbar-tab" data-view="messages">
         Messages
         <span class="pwc-topbar-badge" id="unreadBadge" style="display:none;">0</span>
@@ -234,6 +238,22 @@ show_reading_time: false
   </div><!-- /#view-profile -->
 
   <!-- ═══════════════════════════════════════ -->
+  <!-- VIEW: FRIENDS                           -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="pwc-view pwc-view--friends" id="view-friends">
+    <div class="pwc-friends-wrap">
+      <div class="pwc-friends-header">
+        <h1>Friends</h1>
+        <p>Manage your connections and respond to pending requests.</p>
+        <hr class="pwc-rule">
+      </div>
+      <div id="friends-view-content">
+        <!-- Populated by ProfileFriends.load() -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
   <!-- VIEW: MESSAGES                          -->
   <!-- ═══════════════════════════════════════ -->
   <div class="pwc-view pwc-view--messages" id="view-messages">
@@ -315,7 +335,9 @@ show_reading_time: false
 <script src="{{ site.baseurl }}/assets/js/google-oauth.js"></script>
 <script src="{{ site.baseurl }}/assets/js/group-api.js"></script>
 <script src="{{ site.baseurl }}/assets/js/profile-api.js"></script>
+<script src="{{ site.baseurl }}/assets/js/friends-api.js"></script>
 <script src="{{ site.baseurl }}/assets/js/cropper.min.js"></script>
 <script src="{{ site.baseurl }}/assets/js/profile-avatar.js"></script>
 <script src="{{ site.baseurl }}/assets/js/profile-messages.js"></script>
+<script src="{{ site.baseurl }}/assets/js/profile-friends.js"></script>
 <script src="{{ site.baseurl }}/assets/js/profile.js"></script>

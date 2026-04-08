@@ -97,10 +97,30 @@ var Blog = (function () {
         BlogRenderer.renderPosts(data.posts, currentUser);
         BlogRenderer.renderPagination(data.page, data.pages);
         collectAuthors(data.posts);
+        if (currentUser) fetchFriendStatuses(data.posts);
       })
       .catch(function () {
         BlogRenderer.showError("Could not load posts. Is the backend running?");
       });
+  }
+
+  /* ── Friend status fetching ──────────────────────────────────────────── */
+
+  function fetchFriendStatuses(posts) {
+    if (typeof FriendsAPI === "undefined") return;
+    var seen = {};
+    posts.forEach(function (p) {
+      if (p.author_id && p.author_id !== currentUser.id && !seen[p.author_id]) {
+        seen[p.author_id] = true;
+        (function (authorId) {
+          FriendsAPI.getStatus(authorId)
+            .then(function (data) {
+              BlogRenderer.updateFriendButton(authorId, data.status);
+            })
+            .catch(function () {});
+        })(p.author_id);
+      }
+    });
   }
 
   function collectAuthors(posts) {
@@ -121,8 +141,15 @@ var Blog = (function () {
     document.body.style.overflow = "hidden";
 
     BlogAPI.getPost(id)
-      .then(function (post) { BlogRenderer.renderPostDetail(post, currentUser); })
-      .catch(function ()    { BlogRenderer.showDetailError(); });
+      .then(function (post) {
+        BlogRenderer.renderPostDetail(post, currentUser);
+        if (currentUser && post.author_id && post.author_id !== currentUser.id && typeof FriendsAPI !== "undefined") {
+          FriendsAPI.getStatus(post.author_id)
+            .then(function (data) { BlogRenderer.updateFriendButton(post.author_id, data.status); })
+            .catch(function () {});
+        }
+      })
+      .catch(function () { BlogRenderer.showDetailError(); });
   }
 
   function hideDetail() {
@@ -255,6 +282,62 @@ var Blog = (function () {
       .catch(function (err) { alert(err.message); });
   }
 
+  /* ── Author profile modal ────────────────────────────────────────────── */
+
+  function openAuthorProfile(authorId) {
+    if (!currentUser || typeof FriendsAPI === "undefined") return;
+    BlogRenderer.showAuthorProfileLoading();
+
+    Promise.all([
+      FriendsAPI.getUser(authorId),
+      FriendsAPI.getStatus(authorId),
+    ])
+      .then(function (results) {
+        BlogRenderer.renderAuthorProfile(results[0], results[1].status, currentUser);
+      })
+      .catch(function () {
+        BlogRenderer.showAuthorProfileError();
+      });
+  }
+
+  function closeAuthorProfile(e) {
+    /* Allow clicking the backdrop to close, but not clicks inside the card */
+    if (e && e.target !== document.getElementById("blog-author-modal")) return;
+    BlogRenderer.hideAuthorProfile();
+  }
+
+  /* ── Friend actions ──────────────────────────────────────────────────── */
+
+  function addFriend(authorId) {
+    if (typeof FriendsAPI === "undefined") return;
+    FriendsAPI.sendRequest(authorId)
+      .then(function () {
+        BlogRenderer.updateFriendButton(authorId, "pending_sent");
+        BlogRenderer.updateModalFriendButton(authorId, "pending_sent");
+      })
+      .catch(function (err) { alert(err.message); });
+  }
+
+  function acceptFriend(authorId) {
+    if (typeof FriendsAPI === "undefined") return;
+    FriendsAPI.accept(authorId)
+      .then(function () {
+        BlogRenderer.updateFriendButton(authorId, "accepted");
+        BlogRenderer.updateModalFriendButton(authorId, "accepted");
+      })
+      .catch(function (err) { alert(err.message); });
+  }
+
+  function declineFriend(authorId) {
+    if (typeof FriendsAPI === "undefined") return;
+    FriendsAPI.decline(authorId)
+      .then(function () {
+        BlogRenderer.updateFriendButton(authorId, "none");
+        BlogRenderer.updateModalFriendButton(authorId, "none");
+      })
+      .catch(function (err) { alert(err.message); });
+  }
+
   /* ── Pagination ──────────────────────────────────────────────────────── */
 
   function goPage(p) {
@@ -287,6 +370,11 @@ var Blog = (function () {
     unpinPost:     unpinPost,
     deletePost:    deletePost,
     goPage:        goPage,
+    addFriend:           addFriend,
+    acceptFriend:        acceptFriend,
+    declineFriend:       declineFriend,
+    openAuthorProfile:   openAuthorProfile,
+    closeAuthorProfile:  closeAuthorProfile,
   };
 
 })();

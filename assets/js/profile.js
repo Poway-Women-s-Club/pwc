@@ -89,10 +89,26 @@
     el("pwc-auth-gate").style.display  = "none";
     el("pwc-profile-app").style.display = "block";
 
-    /* Hand off the entire messaging feature */
+    /* Hand off the messaging feature */
     ProfileMessages.init(user);
 
-    /* ── View switching (Profile ↔ Messages topbar) ────────────────────── */
+    /* Hand off the friends feature */
+    if (typeof ProfileFriends !== "undefined") {
+      ProfileFriends.init(user, {
+        onMessage: function (friend) {
+          switchView("messages");
+          ProfileMessages.openConvoById(friend.id, friend);
+        },
+        onRequestsLoaded: function (count) {
+          var badge = el("friendRequestBadge");
+          if (!badge) return;
+          badge.style.display  = count > 0 ? "" : "none";
+          badge.textContent    = count > 99 ? "99+" : String(count);
+        },
+      });
+    }
+
+    /* ── View switching (Profile / Friends / Messages topbar) ──────────── */
 
     function switchView(viewName) {
       document.querySelectorAll(".pwc-topbar-tab").forEach(function (btn) {
@@ -103,6 +119,9 @@
       });
       document.body.style.overflow = (viewName === "messages") ? "hidden" : "";
       window.scrollTo(0, 0);
+      if (viewName === "friends" && typeof ProfileFriends !== "undefined") {
+        ProfileFriends.load();
+      }
     }
 
     document.querySelectorAll(".pwc-topbar-tab").forEach(function (btn) {
