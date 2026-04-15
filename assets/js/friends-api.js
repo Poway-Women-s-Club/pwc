@@ -81,6 +81,10 @@ var FriendsAPI = (function () {
     return request("GET", "/api/friends/requests");
   }
 
+  function searchUsers(query) {
+    return request("GET", "/api/friends/search?q=" + encodeURIComponent(query));
+  }
+
   // ── Messages ─────────────────────────────────────────────────────────────
 
   function getConversations() {
@@ -118,6 +122,7 @@ var FriendsAPI = (function () {
     unfriend:         unfriend,
     getFriends:       getFriends,
     getRequests:      getRequests,
+    searchUsers:      searchUsers,
     // Messages
     getConversations: getConversations,
     getThread:        getThread,

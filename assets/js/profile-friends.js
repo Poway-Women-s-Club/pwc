@@ -209,12 +209,130 @@ var ProfileFriends = (function () {
       });
   }
 
+  /* ── Search ──────────────────────────────────────────────────────────── */
+
+  var searchTimer = null;
+
+  function initSearch() {
+    var input   = el("friendSearchInput");
+    var results = el("friendSearchResults");
+    if (!input || !results) return;
+
+    input.addEventListener("input", function () {
+      clearTimeout(searchTimer);
+      var q = input.value.trim();
+      if (!q) {
+        results.hidden = true;
+        results.innerHTML = "";
+        return;
+      }
+      searchTimer = setTimeout(function () { runSearch(q, results); }, 300);
+    });
+  }
+
+  function runSearch(q, results) {
+    results.innerHTML = '<p class="pwc-friends-empty">Searching…</p>';
+    results.hidden = false;
+
+    FriendsAPI.searchUsers(q)
+      .then(function (users) {
+        renderSearchResults(results, users || []);
+      })
+      .catch(function () {
+        results.innerHTML = '<p class="pwc-friends-empty">Search failed. Is the backend running?</p>';
+      });
+  }
+
+  function renderSearchResults(results, users) {
+    results.innerHTML = "";
+
+    if (!users.length) {
+      results.innerHTML = '<p class="pwc-friends-empty">No members found.</p>';
+      return;
+    }
+
+    var list = document.createElement("ul");
+    list.className = "pwc-friends-list";
+
+    users.forEach(function (u) {
+      var li = document.createElement("li");
+      li.className = "pwc-friend-card";
+
+      var actionsId = "search-actions-" + u.id;
+      li.innerHTML =
+        makeAvatar(u) +
+        '<div class="pwc-friend-card-info">' +
+          '<div class="pwc-friend-card-name">' + escapeHtml(userDisplayName(u)) + '</div>' +
+          '<div class="pwc-friend-card-sub">'  + escapeHtml(u.username || "") + '</div>' +
+        '</div>' +
+        '<div class="pwc-friend-card-actions" id="' + actionsId + '">' +
+          buildSearchActionBtn(u) +
+        '</div>';
+
+      wireSearchActions(li, u, actionsId);
+      list.appendChild(li);
+    });
+
+    results.appendChild(list);
+  }
+
+  function buildSearchActionBtn(u) {
+    switch (u.friendship_status) {
+      case "accepted":
+        return '<span class="pwc-friend-status-tag pwc-friend-status-tag--accepted">Already Friends</span>';
+      case "pending_sent":
+        return '<button class="pwc-btn pwc-btn-border pwc-btn-sm" disabled>Request Sent</button>';
+      case "pending_received":
+        return '<button class="pwc-btn pwc-btn-sage pwc-btn-sm" data-search-accept="' + u.id + '">Accept</button>';
+      default:
+        /* "none" or "declined" */
+        return '<button class="pwc-btn pwc-btn-fill pwc-btn-sm" data-search-add="' + u.id + '">Add Friend</button>';
+    }
+  }
+
+  function wireSearchActions(li, u, actionsId) {
+    var addBtn    = li.querySelector('[data-search-add]');
+    var acceptBtn = li.querySelector('[data-search-accept]');
+    var actionsEl = el(actionsId);
+
+    if (addBtn) {
+      addBtn.addEventListener("click", function () {
+        addBtn.disabled = true;
+        FriendsAPI.sendRequest(u.id)
+          .then(function () {
+            actionsEl.innerHTML = '<button class="pwc-btn pwc-btn-border pwc-btn-sm" disabled>Request Sent</button>';
+          })
+          .catch(function (err) {
+            addBtn.disabled = false;
+            alert(err.message);
+          });
+      });
+    }
+
+    if (acceptBtn) {
+      acceptBtn.addEventListener("click", function () {
+        acceptBtn.disabled = true;
+        FriendsAPI.accept(u.id)
+          .then(function () {
+            actionsEl.innerHTML = '<span class="pwc-friend-status-tag pwc-friend-status-tag--accepted">Friends ✓</span>';
+            setTimeout(load, 800);
+          })
+          .catch(function (err) {
+            acceptBtn.disabled = false;
+            alert(err.message);
+          });
+      });
+    }
+  }
+
   /* ── Public init ─────────────────────────────────────────────────────── */
 
   function init(user, callbacks) {
     currentUser      = user;
     onMessage        = (callbacks && callbacks.onMessage)        || null;
     onRequestsLoaded = (callbacks && callbacks.onRequestsLoaded) || null;
+
+    initSearch();
 
     /* Pre-fetch request count for badge */
     FriendsAPI.getRequests()
