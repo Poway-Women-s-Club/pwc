@@ -59,6 +59,7 @@ show_reading_time: false
     <!-- ─── HOME ─── -->
     <div class="pwc-panel pwc-panel--home open" id="panel-home">
       <div class="pwc-panel-header">
+        <span class="pwc-panel-drag-hint" title="Drag to reorder">⠿</span>
         <span class="pwc-panel-title">Home</span>
         <button class="pwc-panel-close" data-panel="home" title="Close panel">×</button>
       </div>
@@ -126,6 +127,7 @@ show_reading_time: false
     <!-- ─── BLOG ─── -->
     <div class="pwc-panel pwc-panel--blog" id="panel-blog">
       <div class="pwc-panel-header">
+        <span class="pwc-panel-drag-hint" title="Drag to reorder">⠿</span>
         <span class="pwc-panel-title">Blog</span>
         <button class="pwc-panel-close" data-panel="blog" title="Close panel">×</button>
       </div>
@@ -160,6 +162,7 @@ show_reading_time: false
     <!-- ─── GROUPS ─── -->
     <div class="pwc-panel pwc-panel--groups" id="panel-groups">
       <div class="pwc-panel-header">
+        <span class="pwc-panel-drag-hint" title="Drag to reorder">⠿</span>
         <span class="pwc-panel-title">Groups</span>
         <button class="pwc-panel-close" data-panel="groups" title="Close panel">×</button>
       </div>
@@ -180,6 +183,7 @@ show_reading_time: false
     <!-- ─── FRIENDS ─── -->
     <div class="pwc-panel pwc-panel--friends" id="panel-friends">
       <div class="pwc-panel-header">
+        <span class="pwc-panel-drag-hint" title="Drag to reorder">⠿</span>
         <span class="pwc-panel-title">Friends</span>
         <button class="pwc-panel-close" data-panel="friends" title="Close panel">×</button>
       </div>
@@ -202,6 +206,7 @@ show_reading_time: false
     <!-- ─── MESSAGES ─── -->
     <div class="pwc-panel pwc-panel--messages" id="panel-messages">
       <div class="pwc-panel-header">
+        <span class="pwc-panel-drag-hint" title="Drag to reorder">⠿</span>
         <span class="pwc-panel-title">Messages</span>
         <button class="pwc-panel-close" data-panel="messages" title="Close panel">×</button>
       </div>
@@ -240,6 +245,7 @@ show_reading_time: false
     <!-- ─── EVENTS ─── -->
     <div class="pwc-panel pwc-panel--events" id="panel-events">
       <div class="pwc-panel-header">
+        <span class="pwc-panel-drag-hint" title="Drag to reorder">⠿</span>
         <span class="pwc-panel-title">Events</span>
         <button class="pwc-panel-close" data-panel="events" title="Close panel">×</button>
       </div>
@@ -503,6 +509,24 @@ show_reading_time: false
   transition: color 0.12s;
 }
 .pwc-panel-close:hover { color: var(--pwc-charcoal); }
+
+/* Drag-and-drop */
+.pwc-panel-header {
+  cursor: grab;
+  user-select: none;
+}
+.pwc-panel-header:active { cursor: grabbing; }
+.pwc-panel-drag-hint {
+  font-size: 0.85rem;
+  color: var(--pwc-sage);
+  letter-spacing: 0.05em;
+  margin-right: 0.35rem;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+.pwc-panel.dragging { opacity: 0.35; }
+.pwc-panel.drop-before { box-shadow: -4px 0 0 var(--pwc-sage), var(--pwc-shadow-sm); }
+.pwc-panel.drop-after  { box-shadow:  4px 0 0 var(--pwc-sage), var(--pwc-shadow-sm); }
 
 .pwc-panel-body {
   flex: 1;
@@ -780,6 +804,70 @@ show_reading_time: false
   document.querySelectorAll(".pwc-social-widget[data-goto]").forEach(function (btn) {
     btn.addEventListener("click", function () { openPanel(btn.dataset.goto); });
   });
+
+  /* ── Drag-and-drop panel reordering ──────────────────────── */
+  (function () {
+    var grid = document.getElementById("pwc-panel-grid");
+    var dragging = null;
+
+    function clearDropStyles() {
+      grid.querySelectorAll(".pwc-panel").forEach(function (p) {
+        p.classList.remove("drop-before", "drop-after");
+      });
+    }
+
+    grid.querySelectorAll(".pwc-panel").forEach(function (panel) {
+      panel.setAttribute("draggable", "true");
+
+      panel.addEventListener("dragstart", function (e) {
+        dragging = panel;
+        panel.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "move";
+        /* prevent close button clicks from triggering drag on Firefox */
+        e.dataTransfer.setData("text/plain", panel.id);
+      });
+
+      panel.addEventListener("dragend", function () {
+        panel.classList.remove("dragging");
+        clearDropStyles();
+        dragging = null;
+      });
+
+      panel.addEventListener("dragover", function (e) {
+        if (!dragging || dragging === panel) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        clearDropStyles();
+        var rect = panel.getBoundingClientRect();
+        if (e.clientX < rect.left + rect.width / 2) {
+          panel.classList.add("drop-before");
+        } else {
+          panel.classList.add("drop-after");
+        }
+      });
+
+      panel.addEventListener("dragleave", function () {
+        panel.classList.remove("drop-before", "drop-after");
+      });
+
+      panel.addEventListener("drop", function (e) {
+        e.preventDefault();
+        if (!dragging || dragging === panel) return;
+        var rect = panel.getBoundingClientRect();
+        if (e.clientX < rect.left + rect.width / 2) {
+          grid.insertBefore(dragging, panel);
+        } else {
+          panel.after(dragging);
+        }
+        clearDropStyles();
+      });
+    });
+
+    /* Prevent close button from initiating a drag */
+    grid.querySelectorAll(".pwc-panel-close").forEach(function (btn) {
+      btn.addEventListener("mousedown", function (e) { e.stopPropagation(); });
+    });
+  })();
 
   /* Group chips on home → open groups panel */
   /* (chips are dynamic, handled via event delegation) */
