@@ -26,10 +26,8 @@ minima:
     - { platform: github, user_url: "https://github.com/Poway-Women-s-Club/pwc" }
   nav_pages:
     - navigation/about.md
-    - navigation/events.md
-    - navigation/blog.html
-    - navigation/groups.html
-    - navigation/contact.md
+    - navigation/social.html
+    - navigation/settings.html
 
 # Event scheduling / signup endpoints.
 # These are typically Formspree/Google Forms URLs. Leave blank to disable submission.

@@ -1,0 +1,504 @@
+---
+layout: default
+title: Settings
+hide: true
+permalink: /navigation/settings/
+show_reading_time: false
+---
+
+<!-- ══════════════════════════════════════════════════════════
+     LOGGED-OUT: Login / Register
+     ══════════════════════════════════════════════════════════ -->
+<div id="pwc-settings-login" class="pwc-login-page">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="login-emblem">PWC</div>
+      <h1 id="formTitle">Member Login</h1>
+      <p id="formSubtitle">Poway Woman's Club — Members Area</p>
+    </div>
+    <hr class="login-divider">
+    <div class="login-alert" id="loginAlert" role="alert"></div>
+    <div class="login-alert login-alert--success" id="successAlert" role="status"></div>
+
+    <!-- SIGN IN -->
+    <div id="loginForm">
+      <div class="login-fields">
+        <div class="login-field">
+          <label for="username">Username</label>
+          <input class="form__input" type="text" id="username" placeholder="your.username" autocomplete="username" autocapitalize="none" spellcheck="false">
+        </div>
+        <div class="login-field">
+          <label for="password">Password</label>
+          <div class="login-pw-wrap">
+            <input class="form__input" type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+            <button class="login-pw-toggle" id="pwToggle" type="button" aria-label="Show password">Show</button>
+          </div>
+        </div>
+      </div>
+      <div class="login-actions">
+        <button class="btn btn__primary" id="loginBtn" type="button">Sign In</button>
+        <a class="btn btn__secondary" href="{{ site.baseurl }}/">← Back to Home</a>
+      </div>
+      <div class="login-google-wrap" id="googleSignInWrap" hidden>
+        <p class="login-oauth-label">or</p>
+        <button class="btn btn__secondary login-google-btn" id="googleSignInBtn" type="button">Continue with Google</button>
+      </div>
+      <div class="login-back">Don't have an account? <a href="#" id="showRegister">Create one</a></div>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="registerForm" style="display:none;">
+      <div class="login-fields">
+        <div class="login-field login-field--row">
+          <div class="login-field">
+            <label for="regFirstName">First Name</label>
+            <input class="form__input" type="text" id="regFirstName" placeholder="Jane" autocomplete="given-name">
+          </div>
+          <div class="login-field">
+            <label for="regLastName">Last Name</label>
+            <input class="form__input" type="text" id="regLastName" placeholder="Doe" autocomplete="family-name">
+          </div>
+        </div>
+        <div class="login-field">
+          <label for="regUsername">Username</label>
+          <input class="form__input" type="text" id="regUsername" placeholder="jane.doe" autocomplete="username" autocapitalize="none" spellcheck="false">
+        </div>
+        <div class="login-field">
+          <label for="regEmail">Email</label>
+          <input class="form__input" type="email" id="regEmail" placeholder="jane@example.com" autocomplete="email">
+        </div>
+        <div class="login-field">
+          <label for="regPassword">Password</label>
+          <div class="login-pw-wrap">
+            <input class="form__input" type="password" id="regPassword" placeholder="••••••••" autocomplete="new-password">
+            <button class="login-pw-toggle" id="regPwToggle" type="button" aria-label="Show password">Show</button>
+          </div>
+        </div>
+        <div class="login-field">
+          <label for="regConfirm">Confirm Password</label>
+          <input class="form__input" type="password" id="regConfirm" placeholder="••••••••" autocomplete="new-password">
+        </div>
+      </div>
+      <div class="login-actions">
+        <button class="btn btn__primary" id="registerBtn" type="button">Create Account</button>
+        <a class="btn btn__secondary" href="{{ site.baseurl }}/">← Back to Home</a>
+      </div>
+      <div class="login-google-wrap" id="googleSignInWrapRegister" hidden>
+        <p class="login-oauth-label">or</p>
+        <button class="btn btn__secondary login-google-btn" id="googleSignInBtnRegister" type="button">Continue with Google</button>
+      </div>
+      <div class="login-back">Already have an account? <a href="#" id="showLogin">Sign in</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     LOGGED-IN: Account Settings
+     ══════════════════════════════════════════════════════════ -->
+<div id="pwc-settings-app" style="display:none;">
+  <div class="pwc-profile-wrap">
+
+    <!-- Sidebar -->
+    <aside class="pwc-sidebar">
+      <div class="pwc-avatar-ring">
+        <div class="pwc-avatar" id="sidebarAvatar">
+          <img id="sidebarAvatarImg" class="pwc-avatar-img" alt="" width="72" height="72" hidden>
+          <span id="avatarInitials">—</span>
+        </div>
+      </div>
+      <div class="pwc-sidebar-name" id="sidebarName">Loading…</div>
+      <div class="pwc-sidebar-email" id="sidebarEmail"></div>
+
+      <nav class="pwc-sidenav">
+        <button class="pwc-sidenav-btn active" data-tab="edit">Edit Profile</button>
+        <button class="pwc-sidenav-btn" data-tab="security">Security</button>
+        <button class="pwc-sidenav-btn" data-tab="appearance">Appearance</button>
+      </nav>
+
+      <a href="{{ site.baseurl }}/navigation/social" class="pwc-btn pwc-btn-fill" style="margin-top:1rem;display:block;text-align:center;text-decoration:none;">← Member Portal</a>
+      <button class="pwc-logout-btn" id="logoutBtn" style="margin-top:0.5rem;">Sign Out</button>
+    </aside>
+
+    <!-- Main content -->
+    <main class="pwc-main">
+
+      <!-- EDIT PROFILE TAB (active by default) -->
+      <section class="pwc-tab active" id="tab-edit">
+        <div class="pwc-tab-header">
+          <h1>Edit Profile</h1>
+          <hr class="pwc-rule">
+        </div>
+        <form class="pwc-form" id="profileForm" onsubmit="return false;">
+          <div class="pwc-form-row">
+            <div class="pwc-form-group">
+              <label for="firstName">First Name</label>
+              <input type="text" id="firstName" placeholder="Jane" autocomplete="given-name">
+            </div>
+            <div class="pwc-form-group">
+              <label for="lastName">Last Name</label>
+              <input type="text" id="lastName" placeholder="Doe" autocomplete="family-name">
+            </div>
+          </div>
+          <div class="pwc-form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" placeholder="jane@example.com" autocomplete="email">
+          </div>
+          <div class="pwc-form-group">
+            <label>Profile photo</label>
+            <p class="pwc-appearance-desc" style="margin:0 0 0.5rem;">Square crop, up to 3 MB. Drag the crop box to frame your face.</p>
+            <div class="pwc-avatar-edit-row">
+              <input type="file" id="avatarFileInput" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+              <button type="button" class="pwc-btn pwc-btn-border" id="avatarPickBtn">Choose photo…</button>
+              <button type="button" class="pwc-btn pwc-btn-border pwc-btn-danger-outline" id="avatarRemoveBtn" hidden>Remove photo</button>
+            </div>
+            <span class="pwc-save-msg" id="avatarMsg"></span>
+          </div>
+          <div class="pwc-form-group">
+            <label for="bio">Bio</label>
+            <textarea id="bio" rows="4" placeholder="Tell your fellow members a little about yourself…"></textarea>
+          </div>
+          <div class="pwc-form-group">
+            <label>Languages Spoken</label>
+            <div class="pwc-tag-input-wrap">
+              <div class="pwc-tag-chips" id="langChips"></div>
+              <input type="text" id="langInput" class="pwc-tag-input" placeholder="Type a language and press Enter">
+            </div>
+          </div>
+          <div class="pwc-form-group">
+            <label>Interests</label>
+            <div class="pwc-tag-input-wrap">
+              <div class="pwc-tag-chips" id="interestChips"></div>
+              <input type="text" id="interestInput" class="pwc-tag-input" placeholder="Type an interest and press Enter">
+            </div>
+          </div>
+          <div class="pwc-form-actions">
+            <span class="pwc-save-msg" id="saveMsg"></span>
+            <button type="button" class="pwc-btn pwc-btn-fill" id="saveBtn">Save Changes</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- SECURITY TAB -->
+      <section class="pwc-tab" id="tab-security">
+        <div class="pwc-tab-header">
+          <h1>Security</h1>
+          <hr class="pwc-rule">
+        </div>
+        <form class="pwc-form" onsubmit="return false;">
+          <div class="pwc-form-group">
+            <label for="currentPw">Current Password</label>
+            <input type="password" id="currentPw" placeholder="••••••••">
+          </div>
+          <div class="pwc-form-group">
+            <label for="newPw">New Password</label>
+            <input type="password" id="newPw" placeholder="••••••••">
+          </div>
+          <div class="pwc-form-group">
+            <label for="confirmPw">Confirm New Password</label>
+            <input type="password" id="confirmPw" placeholder="••••••••">
+          </div>
+          <div class="pwc-form-actions">
+            <span class="pwc-save-msg" id="pwMsg"></span>
+            <button type="button" class="pwc-btn pwc-btn-fill" id="changePwBtn">Update Password</button>
+          </div>
+        </form>
+        <div class="pwc-form-group" style="margin-top:2rem; padding-top:1.5rem; border-top:1px solid rgba(232,223,226,0.95);">
+          <h2 class="pwc-appearance-heading" style="margin-bottom:0.35rem;">Google account</h2>
+          <p class="pwc-appearance-desc" id="googleLinkStatus">Loading…</p>
+          <div class="pwc-form-actions" style="margin-top:0.75rem;">
+            <button type="button" class="pwc-btn pwc-btn-border" id="googleLinkBtn">Connect Google</button>
+            <span class="pwc-save-msg" id="googleLinkMsg"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- APPEARANCE TAB -->
+      <section class="pwc-tab" id="tab-appearance">
+        <div class="pwc-tab-header">
+          <h1>Appearance</h1>
+          <hr class="pwc-rule">
+        </div>
+        <div class="pwc-appearance-section">
+          <h2 class="pwc-appearance-heading">Cursor Style</h2>
+          <p class="pwc-appearance-desc">Choose a cursor that reflects your style. Your selection is saved across the site.</p>
+          <p class="pwc-cursor-group-label">Standard</p>
+          <div class="pwc-cursor-grid" id="cursorGridStandard"></div>
+          <p class="pwc-cursor-group-label pwc-cursor-group-label--themed">Site-Themed</p>
+          <div class="pwc-cursor-grid" id="cursorGridThemed"></div>
+          <div class="pwc-form-actions" style="margin-top:1.5rem;">
+            <span class="pwc-save-msg" id="cursorMsg"></span>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- Avatar crop modal -->
+<div id="pwcAvatarCropBackdrop" class="pwc-modal-backdrop" hidden data-crop-dismiss></div>
+<div id="pwcAvatarCropModal" class="pwc-modal pwc-modal--avatar-crop" role="dialog" aria-modal="true" aria-labelledby="pwcAvatarCropTitle" tabindex="-1" hidden>
+  <button type="button" class="pwc-modal-close" aria-label="Close crop dialog" data-crop-dismiss>×</button>
+  <h3 id="pwcAvatarCropTitle">Crop your photo</h3>
+  <p>Drag to move, use the grid handles to resize. The result is a square profile picture.</p>
+  <div class="pwc-crop-wrap"><img id="pwcCropperImage" class="pwc-cropper-img" alt=""></div>
+  <div class="pwc-modal-actions pwc-modal-actions--crop">
+    <button type="button" class="pwc-btn pwc-btn-border" data-crop-dismiss>Cancel</button>
+    <button type="button" class="pwc-btn pwc-btn-fill" id="pwcCropSaveBtn">Save photo</button>
+  </div>
+</div>
+
+<link rel="stylesheet" href="{{ site.baseurl }}/assets/css/cropper.min.css">
+<script>
+  window.PWC_API_BASE_URL = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
+    ? "{{ site.events_api_local_url | default: 'http://localhost:8327' | escape }}"
+    : "{{ site.events_api_base_url | escape }}";
+  window.API = window.PWC_API_BASE_URL;
+</script>
+<script src="{{ site.baseurl }}/assets/js/google-oauth.js"></script>
+<script src="{{ site.baseurl }}/assets/js/profile-api.js"></script>
+<script src="{{ site.baseurl }}/assets/js/cropper.min.js"></script>
+<script src="{{ site.baseurl }}/assets/js/profile-avatar.js"></script>
+<script src="{{ site.baseurl }}/assets/js/login.js"></script>
+<script>
+/* ── Settings page: runs when logged in ──────────────────────────────── */
+(function () {
+  "use strict";
+
+  var user = null;
+  try { user = JSON.parse(sessionStorage.getItem("pwc_user")); } catch (_) {}
+  if (!user) return; /* login.js handles the logged-out UI */
+
+  /* ── Show settings, hide login ── */
+  var loginEl = document.getElementById("pwc-settings-login");
+  var appEl   = document.getElementById("pwc-settings-app");
+  if (loginEl) loginEl.style.display = "none";
+  if (appEl)   appEl.style.display   = "";
+
+  /* ── Helpers ── */
+  function el(id) { return document.getElementById(id); }
+  function showMsg(msgEl, text, isError) {
+    if (!msgEl) return;
+    msgEl.textContent = text;
+    msgEl.className = "pwc-save-msg visible" + (isError ? " error" : "");
+    setTimeout(function () { msgEl.className = "pwc-save-msg"; }, 3000);
+  }
+  function saveSession(u) { sessionStorage.setItem("pwc_user", JSON.stringify(u)); }
+
+  /* ── Render sidebar ── */
+  function renderSidebar() {
+    var initials = ((user.firstName || "").charAt(0) + (user.lastName || "").charAt(0)).toUpperCase() || "?";
+    var nameText = ((user.firstName || "") + " " + (user.lastName || "")).trim() || user.username || "Member";
+    if (el("sidebarName"))  el("sidebarName").textContent  = nameText;
+    if (el("sidebarEmail")) el("sidebarEmail").textContent = user.email || "";
+    if (el("avatarInitials")) el("avatarInitials").textContent = initials;
+    var imgEl = el("sidebarAvatarImg");
+    var spanEl = el("avatarInitials");
+    var url = (user.avatar_url || "").trim();
+    if (url && location.protocol === "https:" && url.indexOf("http://") === 0) url = "https://" + url.slice(7);
+    if (imgEl) {
+      if (url) { imgEl.src = url; imgEl.hidden = false; if (spanEl) spanEl.style.display = "none"; }
+      else { imgEl.hidden = true; if (spanEl) spanEl.style.display = ""; }
+    }
+  }
+  renderSidebar();
+
+  /* ── Tab switching ── */
+  var tabs    = document.querySelectorAll("#pwc-settings-app .pwc-tab");
+  var navBtns = document.querySelectorAll("#pwc-settings-app .pwc-sidenav-btn");
+  navBtns.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      navBtns.forEach(function (b) { b.classList.remove("active"); });
+      tabs.forEach(function (t) { t.classList.remove("active"); });
+      btn.classList.add("active");
+      var t = el("tab-" + btn.dataset.tab);
+      if (t) t.classList.add("active");
+      if (btn.dataset.tab === "edit") fillEditForm();
+      if (btn.dataset.tab === "appearance") buildCursorGrid();
+    });
+  });
+
+  /* ── Tag chips ── */
+  var langTags     = (user.languages || []).slice();
+  var interestTags = (user.interests  || []).slice();
+
+  function renderChips(containerId, tags, useRose) {
+    var container = el(containerId);
+    if (!container) return;
+    container.innerHTML = "";
+    tags.forEach(function (tag, i) {
+      var chip  = document.createElement("span");
+      chip.className = "pwc-chip" + (useRose ? " pwc-chip--rose" : "");
+      var label = document.createElement("span"); label.textContent = tag;
+      var btn   = document.createElement("button");
+      btn.className = "pwc-chip-remove"; btn.textContent = "\u00d7"; btn.setAttribute("type","button");
+      btn.addEventListener("click", (function (idx, arr, cId, rose) {
+        return function () { arr.splice(idx, 1); renderChips(cId, arr, rose); };
+      })(i, tags, containerId, useRose));
+      chip.appendChild(label); chip.appendChild(btn); container.appendChild(chip);
+    });
+  }
+
+  function bindTagInput(inputId, tags, chipsId, useRose) {
+    var input = el(inputId); if (!input) return;
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === ",") {
+        e.preventDefault();
+        var val = input.value.trim().replace(/,$/, "");
+        if (val && tags.indexOf(val) === -1) { tags.push(val); renderChips(chipsId, tags, useRose); }
+        input.value = "";
+      }
+      if (e.key === "Backspace" && !input.value && tags.length) { tags.pop(); renderChips(chipsId, tags, useRose); }
+    });
+  }
+
+  function fillEditForm() {
+    if (el("firstName")) el("firstName").value = user.firstName || "";
+    if (el("lastName"))  el("lastName").value  = user.lastName  || "";
+    if (el("email"))     el("email").value     = user.email     || "";
+    if (el("bio"))       el("bio").value       = user.bio       || "";
+    langTags.splice(0, langTags.length);
+    (user.languages || []).forEach(function (l) { langTags.push(l); });
+    interestTags.splice(0, interestTags.length);
+    (user.interests || []).forEach(function (i) { interestTags.push(i); });
+    renderChips("langChips",     langTags,     false);
+    renderChips("interestChips", interestTags, true);
+  }
+
+  bindTagInput("langInput",     langTags,     "langChips",     false);
+  bindTagInput("interestInput", interestTags, "interestChips", true);
+  fillEditForm();
+
+  /* ── Edit profile save ── */
+  var saveBtn = el("saveBtn");
+  if (saveBtn) {
+    saveBtn.addEventListener("click", function () {
+      saveBtn.disabled = true;
+      ProfileAPI.updateProfile({
+        firstName: el("firstName") ? el("firstName").value.trim() : "",
+        lastName:  el("lastName")  ? el("lastName").value.trim()  : "",
+        email:     el("email")     ? el("email").value.trim()     : "",
+        bio:       el("bio")       ? el("bio").value.trim()       : "",
+        languages: langTags.slice(),
+        interests: interestTags.slice(),
+      })
+      .then(function (updated) {
+        Object.assign(user, { firstName: updated.firstName || "", lastName: updated.lastName || "", email: updated.email || "", bio: updated.bio || "", languages: updated.languages || [], interests: updated.interests || [] });
+        saveSession(user); renderSidebar();
+        showMsg(el("saveMsg"), "Profile saved.", false);
+      })
+      .catch(function (err) { showMsg(el("saveMsg"), err.message || "Failed to save.", true); })
+      .finally(function () { saveBtn.disabled = false; });
+    });
+  }
+
+  /* ── Password change ── */
+  var pwBtn = el("changePwBtn");
+  if (pwBtn) {
+    pwBtn.addEventListener("click", function () {
+      var cur = el("currentPw"), nw = el("newPw"), conf = el("confirmPw");
+      if (!cur||!nw||!conf) return;
+      if (!cur.value) { showMsg(el("pwMsg"), "Enter your current password.", true); return; }
+      if (nw.value !== conf.value) { showMsg(el("pwMsg"), "Passwords don't match.", true); return; }
+      if (nw.value.length < 6) { showMsg(el("pwMsg"), "New password must be at least 6 characters.", true); return; }
+      pwBtn.disabled = true; pwBtn.textContent = "Updating…";
+      ProfileAPI.changePassword(cur.value, nw.value)
+        .then(function () {
+          cur.value = ""; nw.value = ""; conf.value = "";
+          showMsg(el("pwMsg"), "Password updated.", false);
+        })
+        .catch(function (err) { showMsg(el("pwMsg"), err.message || "Failed to update password.", true); })
+        .finally(function () { pwBtn.disabled = false; pwBtn.textContent = "Update Password"; });
+    });
+  }
+
+  /* ── Google link ── */
+  function renderGoogleLinkUi() {
+    var status = el("googleLinkStatus"), btn = el("googleLinkBtn");
+    if (!status || !btn) return;
+    if (user.hasGoogleLinked) {
+      status.textContent = "Your account is linked with Google. Email reminders are enabled.";
+      btn.hidden = true;
+    } else {
+      status.textContent = "Link Google (" + (user.email || "") + ") to receive meeting reminders.";
+      btn.hidden = false;
+    }
+  }
+  renderGoogleLinkUi();
+  var gBtn = el("googleLinkBtn");
+  if (gBtn) {
+    gBtn.addEventListener("click", function () {
+      gBtn.disabled = true;
+      ProfileAPI.linkGoogle()
+        .then(function (updated) {
+          user.hasGoogleLinked = !!updated.hasGoogleLinked;
+          if (updated.avatar_url !== undefined) user.avatar_url = updated.avatar_url || "";
+          if (updated.avatar_custom !== undefined) user.avatar_custom = !!updated.avatar_custom;
+          saveSession(user); renderSidebar(); renderGoogleLinkUi();
+          showMsg(el("googleLinkMsg"), "Google account connected.", false);
+        })
+        .catch(function (err) { showMsg(el("googleLinkMsg"), err.message || "Could not link Google.", true); })
+        .finally(function () { gBtn.disabled = false; });
+    });
+  }
+
+  /* ── Avatar upload ── */
+  if (window.ProfileAvatar) {
+    ProfileAvatar.init({
+      getUser:       function () { return user; },
+      setUser:       function (patch) { Object.assign(user, patch); saveSession(user); },
+      renderAvatars: function () { renderSidebar(); },
+      showMsg:       function (text, isError) { showMsg(el("avatarMsg"), text, isError); },
+    });
+  }
+
+  /* ── Cursor picker ── */
+  function buildCursorGrid() {
+    if (!window.CursorManager) return;
+    var saved = CursorManager.getSaved();
+    ["standard", "themed"].forEach(function (group) {
+      var container = el("cursorGrid" + group.charAt(0).toUpperCase() + group.slice(1));
+      if (!container || container.children.length) return; /* only render once */
+      CursorManager.CURSORS.filter(function (c) { return c.group === group; }).forEach(function (c) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "pwc-cursor-swatch" + (c.key === saved ? " active" : "");
+        btn.setAttribute("data-cursor", c.key);
+        btn.title = c.label;
+        var preview = document.createElement("div");
+        preview.className = "pwc-cursor-preview";
+        if (c.key === "default") {
+          preview.classList.add("pwc-cursor-preview--default");
+          preview.innerHTML = "<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28'><path d='M5 2 L5 22 L10 17 L13 25 L16 24 L13 16 L19 16 Z' fill='#555' stroke='#fff' stroke-width='1.5' stroke-linejoin='round'/></svg>";
+        } else if (c.isFlower) {
+          preview.innerHTML = "<span style='filter:drop-shadow(0 1px 2px rgba(0,0,0,0.25))'>" + CursorManager.buildFlowerSVG(c.fill, c.stroke, 36) + "</span>";
+        } else {
+          preview.style.background = c.key === "white" ? "#333333" : c.fill;
+          preview.innerHTML = "<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' style='filter:drop-shadow(0 1px 2px rgba(0,0,0,0.35))'><path d='M5 2 L5 22 L10 17 L13 25 L16 24 L13 16 L19 16 Z' fill='" + c.fill + "' stroke='" + c.stroke + "' stroke-width='1.5' stroke-linejoin='round'/></svg>";
+        }
+        var lbl = document.createElement("span"); lbl.className = "pwc-cursor-label"; lbl.textContent = c.label;
+        btn.appendChild(preview); btn.appendChild(lbl);
+        btn.addEventListener("click", function () {
+          document.querySelectorAll(".pwc-cursor-swatch").forEach(function (b) { b.classList.remove("active"); });
+          btn.classList.add("active");
+          CursorManager.apply(c.key);
+          showMsg(el("cursorMsg"), "Cursor saved.", false);
+        });
+        container.appendChild(btn);
+      });
+    });
+  }
+
+  /* ── Sign out ── */
+  var logoutBtn = el("logoutBtn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", function () {
+      sessionStorage.removeItem("pwc_user");
+      ProfileAPI.logout().finally(function () {
+        window.location.href = "{{ site.baseurl }}/navigation/settings";
+      });
+    });
+  }
+
+})();
+</script>

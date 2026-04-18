@@ -1,0 +1,1034 @@
+---
+layout: default
+title: Social
+hide: true
+permalink: /navigation/social/
+show_reading_time: false
+---
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+
+<!-- ══════════════════════════════════════════════════════════
+     AUTH GATE
+     ══════════════════════════════════════════════════════════ -->
+<div id="pwc-social-gate" class="pwc-gate">
+  <div class="pwc-gate-card">
+    <h2>Member Portal</h2>
+    <p>Sign in to access your groups, messages, friends, events, and the club blog.</p>
+    <a href="{{ site.baseurl }}/navigation/settings" class="pwc-btn pwc-btn-fill">Sign In</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SOCIAL APP
+     ══════════════════════════════════════════════════════════ -->
+<div id="pwc-social-app" style="display:none;">
+
+  <!-- TOP NAV BAR -->
+  <nav class="pwc-topbar">
+    <div class="pwc-topbar-brand">PWC</div>
+    <div class="pwc-topbar-tabs">
+      <button class="pwc-topbar-tab active" data-view="home">Home</button>
+      <button class="pwc-topbar-tab" data-view="blog">Blog</button>
+      <button class="pwc-topbar-tab" data-view="groups">Groups</button>
+      <button class="pwc-topbar-tab" data-view="friends">
+        Friends
+        <span class="pwc-topbar-badge" id="friendRequestBadge" style="display:none;">0</span>
+      </button>
+      <button class="pwc-topbar-tab" data-view="messages">
+        Messages
+        <span class="pwc-topbar-badge" id="unreadBadge" style="display:none;">0</span>
+      </button>
+      <button class="pwc-topbar-tab" data-view="events">Events</button>
+    </div>
+    <div class="pwc-topbar-user">
+      <span id="topbarName"></span>
+      <div class="pwc-topbar-avatar" id="topbarAvatarWrap">
+        <img id="topbarAvatarImg" class="pwc-topbar-avatar-img" alt="" width="36" height="36" hidden>
+        <span id="topbarAvatarText">—</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- VIEW: HOME                                      -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="pwc-view pwc-view--home active" id="view-home">
+    <div class="pwc-social-home">
+
+      <div class="pwc-social-welcome">
+        <div class="pwc-social-welcome-avatar" id="homeAvatar">—</div>
+        <div class="pwc-social-welcome-text">
+          <h1>Welcome back, <span id="homeName">…</span>!</h1>
+          <span class="pwc-social-role-badge" id="homeRole"></span>
+        </div>
+      </div>
+
+      <div class="pwc-social-widgets">
+        <button class="pwc-social-widget" data-goto="groups">
+          <div class="pwc-social-widget-num" id="homeGroupCount">—</div>
+          <div class="pwc-social-widget-label">My Groups</div>
+        </button>
+        <button class="pwc-social-widget" data-goto="friends">
+          <div class="pwc-social-widget-num" id="homeFriendCount">—</div>
+          <div class="pwc-social-widget-label">Friends</div>
+        </button>
+        <button class="pwc-social-widget" data-goto="messages">
+          <div class="pwc-social-widget-num" id="homeUnreadCount">—</div>
+          <div class="pwc-social-widget-label">Unread Messages</div>
+        </button>
+        <button class="pwc-social-widget" data-goto="events">
+          <div class="pwc-social-widget-num" id="homeEventCount">—</div>
+          <div class="pwc-social-widget-label">Upcoming Events</div>
+        </button>
+      </div>
+
+      <div class="pwc-social-section" id="homeGroupsSection">
+        <h2>My Groups</h2>
+        <div id="homeGroupsList" class="pwc-social-group-chips"></div>
+      </div>
+
+      <div class="pwc-social-section" id="homePendingSection" style="display:none;">
+        <h2>Friend Requests</h2>
+        <div id="homePendingList" class="pwc-social-pending-list"></div>
+      </div>
+
+      <div class="pwc-social-section">
+        <h2>Suggested for You</h2>
+        <p class="pwc-social-ml-desc">
+          The server scores upcoming events and groups you haven't joined yet against your bio, interests, and languages
+          using <strong>TF-IDF</strong> and <strong>cosine similarity</strong>.
+        </p>
+        <div class="pwc-form-actions">
+          <button type="button" class="pwc-btn pwc-btn-fill" id="pwcMlRecBtn">Run recommendation engine</button>
+          <span class="pwc-save-msg" id="pwcMlRecMsg"></span>
+        </div>
+        <div id="pwcMlRecOutput" class="pwc-ml-rec-output" hidden></div>
+      </div>
+
+      <div class="pwc-social-section" style="text-align:right;">
+        <a href="{{ site.baseurl }}/navigation/settings" class="pwc-btn pwc-btn-border" style="font-size:0.85rem;">Account Settings</a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- VIEW: BLOG                                      -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="pwc-view pwc-view--blog" id="view-blog">
+    <div class="pwc-blog-page">
+      <div class="pwc-blog-header">
+        <div class="pwc-blog-header-text">
+          <h1>Club Blog</h1>
+          <p>News, recaps, spotlights, and community updates from our members.</p>
+        </div>
+        <button class="pwc-btn pwc-btn-sage pwc-blog-new-btn" id="blog-new-btn" style="display:none;" onclick="Blog.showCompose()">+ New Post</button>
+      </div>
+      <div class="pwc-blog-toolbar">
+        <div class="pwc-blog-search-wrap">
+          <svg class="pwc-blog-search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="blog-search" class="pwc-blog-search" placeholder="Search posts..." autocomplete="off">
+        </div>
+        <div class="pwc-blog-filters">
+          <select id="blog-filter-author" class="pwc-blog-select"><option value="">All Authors</option></select>
+          <button class="pwc-blog-filter-btn" id="blog-filter-pinned" title="Show pinned only">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L12 12 M12 12 L17 7 M12 12 L7 7 M5 22 L19 22 M12 12 L12 22"/></svg>
+            Pinned
+          </button>
+        </div>
+      </div>
+      <div id="blog-posts" class="pwc-blog-list"><div class="pwc-blog-loading">Loading posts...</div></div>
+      <div id="blog-pagination" class="pwc-blog-pagination" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- VIEW: GROUPS                                    -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="pwc-view pwc-view--groups" id="view-groups">
+    <div class="pwc-groups-page">
+      <div class="pwc-blog-header">
+        <div class="pwc-blog-header-text">
+          <h1>Groups</h1>
+          <p>Join groups to connect with members who share your interests and see group-exclusive content.</p>
+        </div>
+        <button class="pwc-btn pwc-btn-sage pwc-blog-new-btn" id="groups-new-btn" style="display:none;" onclick="Groups.showCreate()">+ New Group</button>
+      </div>
+      <div id="groups-list" class="pwc-groups-list"><div class="pwc-blog-loading">Loading groups...</div></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- VIEW: FRIENDS                                   -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="pwc-view pwc-view--friends" id="view-friends">
+    <div class="pwc-friends-wrap">
+      <div class="pwc-friends-header">
+        <h1>Friends</h1>
+        <p>Manage your connections and respond to pending requests.</p>
+        <hr class="pwc-rule">
+      </div>
+      <div class="pwc-friends-search-wrap">
+        <input type="text" id="friendSearchInput" class="pwc-friends-search" placeholder="Search members by username…" autocomplete="off">
+        <div id="friendSearchResults" class="pwc-friends-search-results" hidden></div>
+      </div>
+      <div id="friends-view-content"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- VIEW: MESSAGES                                  -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="pwc-view pwc-view--messages" id="view-messages">
+    <div class="pwc-dm-layout">
+      <aside class="pwc-dm-sidebar">
+        <div class="pwc-dm-sidebar-header"><h2>Messages</h2></div>
+        <div class="pwc-dm-search-wrap">
+          <input type="text" id="dmSearch" class="pwc-dm-search" placeholder="Search members…">
+        </div>
+        <ul class="pwc-dm-list" id="dmList"></ul>
+      </aside>
+      <div class="pwc-dm-chat" id="dmChat">
+        <div class="pwc-dm-empty" id="dmEmpty">
+          <p>Select a conversation to start messaging</p>
+        </div>
+        <div class="pwc-dm-convo" id="dmConvo" style="display:none;">
+          <div class="pwc-dm-convo-header">
+            <div class="pwc-dm-convo-avatar" id="convoAvatar">—</div>
+            <div>
+              <div class="pwc-dm-convo-name" id="convoName">—</div>
+              <div class="pwc-dm-convo-status" id="convoStatus">Member</div>
+            </div>
+          </div>
+          <div class="pwc-dm-messages" id="dmMessages"></div>
+          <div class="pwc-dm-composer">
+            <textarea id="dmInput" class="pwc-dm-input" placeholder="Write a message…" rows="1"></textarea>
+            <button class="pwc-dm-send" id="dmSend" type="button">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- VIEW: EVENTS                                    -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="pwc-view pwc-view--events" id="view-events">
+    <div class="pwc-blog-page">
+      <div class="pwc-blog-header">
+        <div class="pwc-blog-header-text">
+          <h1>Events</h1>
+          <p>Club meetings and community events. Click an event to RSVP, click a date to schedule a meeting.</p>
+        </div>
+      </div>
+      <div id="pwc-events-group-filter" class="pwc-events-filter-bar" style="display:none;">
+        <label for="pwc-events-group-select" style="font-weight:600; font-size:0.9rem; color:var(--pwc-muted);">Filter by group:</label>
+        <select id="pwc-events-group-select" class="pwc-blog-select" style="max-width:220px;">
+          <option value="">All Events</option>
+        </select>
+      </div>
+      <div id="pwc-events-calendar" aria-label="Events calendar"></div>
+    </div>
+  </div>
+
+</div><!-- /#pwc-social-app -->
+
+<!-- ══════════════════════════════════════════════════════════
+     OVERLAYS (shared, outside tab containers)
+     ══════════════════════════════════════════════════════════ -->
+
+<!-- Blog compose -->
+<div id="blog-compose-overlay" class="pwc-blog-overlay" style="display:none;">
+  <div class="pwc-blog-compose-card">
+    <div class="pwc-blog-compose-header">
+      <h2 id="blog-compose-title">New Post</h2>
+      <button class="pwc-blog-close" onclick="Blog.hideCompose()">&times;</button>
+    </div>
+    <form id="blog-compose-form" onsubmit="Blog.submitPost(event)">
+      <input type="hidden" id="blog-edit-id" value="">
+      <div class="pwc-blog-field">
+        <label for="blog-post-title">Title</label>
+        <input type="text" id="blog-post-title" required maxlength="255" placeholder="Give your post a title...">
+      </div>
+      <div class="pwc-blog-field">
+        <label for="blog-post-body">Body</label>
+        <textarea id="blog-post-body" required rows="10" placeholder="Write your post here..."></textarea>
+      </div>
+      <div class="pwc-blog-field">
+        <label for="blog-post-group">Visibility</label>
+        <select id="blog-post-group" class="pwc-blog-select"><option value="">Public (visible to all)</option></select>
+      </div>
+      <div class="pwc-blog-compose-actions">
+        <button type="button" class="pwc-btn pwc-btn-muted" onclick="Blog.hideCompose()">Cancel</button>
+        <button type="submit" class="pwc-btn pwc-btn-sage" id="blog-submit-btn">Publish</button>
+      </div>
+    </form>
+  </div>
+</div>
+<div id="blog-detail-overlay" class="pwc-blog-overlay" style="display:none;">
+  <div class="pwc-blog-detail-card">
+    <button class="pwc-blog-back" onclick="Blog.hideDetail()">← Back to posts</button>
+    <div id="blog-detail-content"></div>
+  </div>
+</div>
+<div id="blog-pin-overlay" class="pwc-blog-overlay" style="display:none;">
+  <div class="pwc-blog-pin-card">
+    <h3>Pin Post</h3>
+    <p>How long should this post stay pinned?</p>
+    <input type="hidden" id="blog-pin-post-id">
+    <div class="pwc-blog-pin-options">
+      <button class="pwc-btn pwc-btn-sage" onclick="Blog.pinPost(0)">Indefinitely</button>
+      <button class="pwc-btn pwc-btn-border" onclick="Blog.pinPost(7)">7 days</button>
+      <button class="pwc-btn pwc-btn-border" onclick="Blog.pinPost(14)">14 days</button>
+      <button class="pwc-btn pwc-btn-border" onclick="Blog.pinPost(30)">30 days</button>
+    </div>
+    <button class="pwc-btn pwc-btn-muted" onclick="Blog.hidePinModal()" style="margin-top:0.75rem;width:100%;">Cancel</button>
+  </div>
+</div>
+
+<!-- Groups overlays -->
+<div id="groups-compose-overlay" class="pwc-blog-overlay" style="display:none;">
+  <div class="pwc-blog-compose-card">
+    <div class="pwc-blog-compose-header">
+      <h2 id="groups-compose-title">New Group</h2>
+      <button class="pwc-blog-close" onclick="Groups.hideCompose()">&times;</button>
+    </div>
+    <form id="groups-compose-form" onsubmit="Groups.submitGroup(event)">
+      <input type="hidden" id="groups-edit-id" value="">
+      <div class="pwc-blog-field">
+        <label for="groups-name">Group Name</label>
+        <input type="text" id="groups-name" required maxlength="120" placeholder="Give your group a name...">
+      </div>
+      <div class="pwc-blog-field">
+        <label for="groups-desc">Description</label>
+        <textarea id="groups-desc" rows="4" placeholder="Describe what this group is about..."></textarea>
+      </div>
+      <div class="pwc-blog-field pwc-groups-join-policy">
+        <span class="pwc-groups-join-policy-label">How people join</span>
+        <label class="pwc-groups-radio-row">
+          <input type="radio" name="groups-join-type" value="open" id="groups-join-open" checked>
+          <span>Anyone can join (open group)</span>
+        </label>
+        <label class="pwc-groups-radio-row">
+          <input type="radio" name="groups-join-type" value="apply" id="groups-join-apply">
+          <span>Members must apply and be approved</span>
+        </label>
+      </div>
+      <div class="pwc-blog-compose-actions">
+        <button type="button" class="pwc-btn pwc-btn-muted" onclick="Groups.hideCompose()">Cancel</button>
+        <button type="submit" class="pwc-btn pwc-btn-sage" id="groups-submit-btn">Create Group</button>
+      </div>
+    </form>
+  </div>
+</div>
+<div id="groups-apply-overlay" class="pwc-blog-overlay" style="display:none;">
+  <div class="pwc-blog-compose-card">
+    <div class="pwc-blog-compose-header">
+      <h2>Apply to join</h2>
+      <button type="button" class="pwc-blog-close" onclick="Groups.hideApply()">&times;</button>
+    </div>
+    <p class="pwc-groups-apply-intro">Optionally tell the group organizers why you would like to join.</p>
+    <div class="pwc-blog-field">
+      <label for="groups-apply-message">Message <span class="pwc-groups-optional">(optional)</span></label>
+      <textarea id="groups-apply-message" rows="5" maxlength="2000"></textarea>
+    </div>
+    <div class="pwc-blog-compose-actions">
+      <button type="button" class="pwc-btn pwc-btn-muted" onclick="Groups.hideApply()">Cancel</button>
+      <button type="button" class="pwc-btn pwc-btn-sage" id="groups-apply-submit" onclick="Groups.submitApply()">Submit application</button>
+    </div>
+  </div>
+</div>
+<div id="groups-detail-overlay" class="pwc-blog-overlay" style="display:none;">
+  <div class="pwc-blog-detail-card">
+    <button class="pwc-blog-back" onclick="Groups.hideDetail()">&#8592; Back to groups</button>
+    <div id="groups-detail-content"></div>
+  </div>
+</div>
+
+<!-- RSVP modal -->
+<div id="pwc-rsvp-backdrop" class="pwc-modal-backdrop" hidden></div>
+<div id="pwc-rsvp-modal" class="pwc-modal" role="dialog" aria-modal="true" aria-labelledby="pwc-rsvp-title" tabindex="-1" hidden>
+  <button type="button" class="pwc-modal-close" aria-label="Close RSVP dialog" id="pwc-rsvp-close">×</button>
+  <h3 id="pwc-rsvp-title">RSVP</h3>
+  <p id="pwc-rsvp-meta"></p>
+  <div id="pwc-admin-attendees" hidden>
+    <p style="margin:0.5rem 0 0; font-weight:700;">Attendees (admin)</p>
+    <div id="pwc-admin-attendees-count" style="margin-bottom:0.5rem; color:rgba(255,255,255,0.85);"></div>
+    <button id="pwc-admin-test-signup-btn" type="button" class="pwc-btn pwc-btn-border" style="margin-bottom:0.5rem;" hidden>Add Test Signup</button>
+    <div id="pwc-admin-attendees-groups"></div>
+  </div>
+  <form id="pwc-rsvp-form" method="POST" action="#">
+    <input type="hidden" name="event_id" id="pwc-rsvp-event-id" value="">
+    <input type="hidden" name="event_title" id="pwc-rsvp-event-title" value="">
+    <input type="hidden" name="event_datetime" id="pwc-rsvp-event-datetime" value="">
+    <div id="pwc-rsvp-user-banner" class="pwc-rsvp-user-banner" hidden>RSVPing as <strong id="pwc-rsvp-user-display"></strong></div>
+    <div id="pwc-rsvp-session-mismatch" class="pwc-alert" style="margin-bottom:0.75rem;" hidden></div>
+    <div class="pwc-form-grid">
+      <label id="pwc-rsvp-name-label">Your name<input type="text" name="name" autocomplete="name" required></label>
+      <label id="pwc-rsvp-email-label">Email<input type="email" name="email" autocomplete="email" required></label>
+      <label class="pwc-span-2">Are you attending?
+        <select name="attendance" required>
+          <option value="yes">Yes, I will attend</option>
+          <option value="no">No, I can't attend</option>
+          <option value="maybe">Maybe / I'm not sure yet</option>
+        </select>
+      </label>
+      <label class="pwc-span-2">Notes (optional)<textarea name="notes" rows="3"></textarea></label>
+      <label class="pwc-span-2" id="pwc-rsvp-reminder-wrap" hidden>
+        <span style="display:flex; gap:0.55rem; align-items:flex-start;">
+          <input type="checkbox" id="pwc-rsvp-wants-reminder" name="wants_reminders" style="width:auto; min-width:auto; margin-top:0.2rem; flex:0 0 auto;">
+          <span>Email me a reminder about 30 minutes before this meeting.</span>
+        </span>
+      </label>
+      <p class="pwc-span-2" id="pwc-rsvp-reminder-hint" style="font-size:0.88rem; color:var(--pwc-muted); margin:0;" hidden></p>
+    </div>
+    <button type="submit" class="pwc-btn pwc-btn-fill" style="margin-top:0.85rem;">Submit RSVP</button>
+    <div id="pwc-rsvp-feedback" class="pwc-alert" hidden></div>
+    <div id="pwc-rsvp-missing-config" class="pwc-alert" hidden>RSVP API is not configured.</div>
+  </form>
+</div>
+
+<!-- Meeting scheduling modal -->
+<div id="pwc-meeting-modal-backdrop" class="pwc-modal-backdrop" hidden></div>
+<div id="pwc-meeting-modal" class="pwc-modal" role="dialog" aria-modal="true" aria-labelledby="pwc-meeting-modal-title" tabindex="-1" hidden>
+  <button type="button" class="pwc-modal-close" aria-label="Close meeting dialog" id="pwc-meeting-modal-close">×</button>
+  <h3 id="pwc-meeting-modal-title">Schedule a Meeting</h3>
+  <p id="pwc-meeting-modal-meta"></p>
+  <form id="pwc-meeting-modal-form" method="POST" action="#">
+    <div class="pwc-form-grid">
+      <label>Your name<input type="text" name="name" autocomplete="name" required></label>
+      <label>Email<input type="email" name="email" autocomplete="email" required></label>
+      <label>Start<input type="datetime-local" name="preferred_datetime" required></label>
+      <label>End<input type="datetime-local" name="preferred_end_datetime" required></label>
+      <label>Max attendees<input type="number" name="max_attendees" min="1" step="1" placeholder="e.g. 25"></label>
+      <label id="pwc-meeting-visibility-scope-label">Who can see/join?
+        <select name="visibility_scope">
+          <option value="club">Entire club</option>
+          <option value="groups">Selected groups only</option>
+        </select>
+      </label>
+      <label class="pwc-span-2" id="pwc-meeting-visible-groups-label" hidden>Allowed groups
+        <div id="pwc-meeting-visible-groups-list" style="max-height:140px; overflow:auto; border:1px solid rgba(232,223,226,0.95); border-radius:8px; padding:0.5rem;"></div>
+      </label>
+      <label class="pwc-span-2">Topic<input type="text" name="topic" required></label>
+      <label class="pwc-span-2">Description<textarea name="description" rows="4" required></textarea></label>
+    </div>
+    <button type="submit" class="pwc-btn pwc-btn-fill" style="margin-top:0.85rem;">Submit Meeting Request</button>
+    <div id="pwc-meeting-modal-feedback" class="pwc-alert" hidden></div>
+    <div id="pwc-meeting-modal-missing-config" class="pwc-alert" hidden>Meeting scheduling API is not configured.</div>
+  </form>
+</div>
+
+<!-- Social page styles -->
+<style>
+.pwc-social-home {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+}
+.pwc-social-welcome {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+.pwc-social-welcome-avatar {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: var(--pwc-sage-light);
+  border: 2px solid var(--pwc-sage);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem; font-weight: 700; color: var(--pwc-sage-dark);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.pwc-social-welcome-avatar img {
+  width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
+}
+.pwc-social-welcome-text h1 {
+  font-size: 1.6rem; margin: 0 0 0.25rem;
+  font-family: 'Playfair Display', serif;
+  color: var(--pwc-charcoal);
+}
+.pwc-social-role-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--pwc-sage-light);
+  color: var(--pwc-sage-dark);
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+}
+.pwc-social-widgets {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+@media (max-width: 680px) {
+  .pwc-social-widgets { grid-template-columns: repeat(2, 1fr); }
+  .pwc-social-welcome-text h1 { font-size: 1.2rem; }
+}
+.pwc-social-widget {
+  background: var(--pwc-white);
+  border: 1px solid var(--pwc-border);
+  border-radius: 10px;
+  padding: 1.25rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+  font-family: inherit;
+}
+.pwc-social-widget:hover {
+  border-color: var(--pwc-sage);
+  box-shadow: var(--pwc-shadow-md);
+  transform: translateY(-2px);
+}
+.pwc-social-widget-num {
+  font-size: 2rem; font-weight: 800;
+  color: var(--pwc-sage-dark);
+  line-height: 1.1; margin-bottom: 0.25rem;
+}
+.pwc-social-widget-label {
+  font-size: 0.78rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--pwc-muted);
+}
+.pwc-social-section {
+  margin-bottom: 2rem;
+}
+.pwc-social-section h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.15rem; font-weight: 700;
+  color: var(--pwc-charcoal);
+  margin: 0 0 0.75rem;
+}
+.pwc-social-group-chips {
+  display: flex; flex-wrap: wrap; gap: 0.5rem;
+}
+.pwc-social-group-chip {
+  background: var(--pwc-sage-light);
+  color: var(--pwc-sage-dark);
+  border: 1px solid var(--pwc-sage);
+  border-radius: 20px;
+  padding: 0.3rem 0.85rem;
+  font-size: 0.85rem; font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.pwc-social-group-chip:hover { background: var(--pwc-sage); color: #fff; }
+.pwc-social-ml-desc {
+  font-size: 0.88rem; color: var(--pwc-muted); margin: 0 0 0.75rem;
+  max-width: 560px;
+}
+.pwc-social-pending-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.pwc-social-pending-item {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--pwc-white); border: 1px solid var(--pwc-border); border-radius: 8px;
+  padding: 0.6rem 1rem; gap: 1rem;
+}
+.pwc-social-pending-name { font-weight: 600; font-size: 0.9rem; color: var(--pwc-charcoal); }
+.pwc-social-pending-actions { display: flex; gap: 0.4rem; }
+</style>
+
+<script>
+  window.PWC_API_BASE_URL = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
+    ? "{{ site.events_api_local_url | default: 'http://localhost:8327' | escape }}"
+    : "{{ site.events_api_base_url | escape }}";
+  window.API = window.PWC_API_BASE_URL;
+  var API = window.API;
+</script>
+<script src="{{ site.baseurl }}/assets/js/google-oauth.js"></script>
+<script src="{{ site.baseurl }}/assets/js/group-api.js"></script>
+<script src="{{ site.baseurl }}/assets/js/profile-api.js"></script>
+<script src="{{ site.baseurl }}/assets/js/friends-api.js"></script>
+<script src="{{ site.baseurl }}/assets/js/blog-api.js"></script>
+<script src="{{ site.baseurl }}/assets/js/blog-renderer.js"></script>
+<script src="{{ site.baseurl }}/assets/js/group-renderer.js"></script>
+<script src="{{ site.baseurl }}/assets/js/user-profile-modal.js"></script>
+<script src="{{ site.baseurl }}/assets/js/blog.js"></script>
+<script src="{{ site.baseurl }}/assets/js/groups.js"></script>
+<script src="{{ site.baseurl }}/assets/js/profile-messages.js"></script>
+<script src="{{ site.baseurl }}/assets/js/profile-friends.js"></script>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ── Auth check ───────────────────────────────────────────── */
+  var currentUser = null;
+  try { currentUser = JSON.parse(sessionStorage.getItem("pwc_user")); } catch (_) {}
+
+  if (!currentUser) {
+    document.getElementById("pwc-social-gate").style.display = "";
+    return;
+  }
+
+  document.getElementById("pwc-social-app").style.display = "";
+  document.getElementById("pwc-social-gate").style.display = "none";
+
+  /* ── Populate topbar ──────────────────────────────────────── */
+  var nameEl  = document.getElementById("topbarName");
+  var textEl  = document.getElementById("topbarAvatarText");
+  var imgEl   = document.getElementById("topbarAvatarImg");
+  var initials = ((currentUser.firstName || "").charAt(0) + (currentUser.lastName || "").charAt(0)).toUpperCase() || "?";
+  if (nameEl)  nameEl.textContent  = currentUser.firstName || currentUser.username || "";
+  if (textEl)  textEl.textContent  = initials;
+  if (imgEl && currentUser.avatar_url) { imgEl.src = currentUser.avatar_url; imgEl.hidden = false; if (textEl) textEl.style.display = "none"; }
+
+  /* ── Populate home tab ────────────────────────────────────── */
+  var homeAvatarEl = document.getElementById("homeAvatar");
+  if (homeAvatarEl) {
+    if (currentUser.avatar_url) {
+      homeAvatarEl.innerHTML = '<img src="' + currentUser.avatar_url + '" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:50%;">';
+    } else {
+      homeAvatarEl.textContent = initials;
+    }
+  }
+  var homeNameEl = document.getElementById("homeName");
+  if (homeNameEl) homeNameEl.textContent = currentUser.firstName || currentUser.username || "there";
+  var homeRoleEl = document.getElementById("homeRole");
+  if (homeRoleEl) {
+    homeRoleEl.textContent = currentUser.role === "admin" ? "Admin" : (currentUser.is_active_member ? "Active Member" : "Member");
+  }
+
+  /* ── Tab switching ────────────────────────────────────────── */
+  var views    = document.querySelectorAll(".pwc-view");
+  var tabBtns  = document.querySelectorAll(".pwc-topbar-tab");
+  var calendarReady = false;
+  var friendsReady  = false;
+  var messagesReady = false;
+
+  function switchView(name) {
+    tabBtns.forEach(function (b) { b.classList.toggle("active", b.dataset.view === name); });
+    views.forEach(function (v) {
+      var matches = v.classList.contains("pwc-view--" + name);
+      v.classList.toggle("active", matches);
+      v.style.display = matches ? "" : "none";
+    });
+    if (name === "events" && !calendarReady) {
+      calendarReady = true;
+      if (window.initSocialCalendar) window.initSocialCalendar();
+    }
+    if (name === "friends" && !friendsReady) {
+      friendsReady = true;
+      if (window.ProfileFriends) ProfileFriends.load(currentUser);
+    }
+    if (name === "messages" && !messagesReady) {
+      messagesReady = true;
+      if (window.ProfileMessages) ProfileMessages.init(currentUser);
+    }
+  }
+
+  /* expose for widget onclick buttons */
+  window.socialSwitchView = switchView;
+
+  tabBtns.forEach(function (btn) {
+    btn.addEventListener("click", function () { switchView(btn.dataset.view); });
+  });
+
+  /* Initialize non-lazy tabs that auto-init via DOMContentLoaded */
+  /* Blog and Groups initialize themselves when their scripts load */
+
+  /* Hide non-active views on init */
+  views.forEach(function (v) {
+    if (!v.classList.contains("active")) v.style.display = "none";
+  });
+
+  /* Widget buttons → switch view */
+  document.querySelectorAll(".pwc-social-widget[data-goto]").forEach(function (btn) {
+    btn.addEventListener("click", function () { switchView(btn.dataset.goto); });
+  });
+
+  /* ── Home tab: load data ──────────────────────────────────── */
+  var API_BASE = (window.PWC_API_BASE_URL || "").replace(/\/$/, "");
+
+  /* Friends count + pending requests */
+  FriendsAPI.getFriends().then(function (friends) {
+    var el = document.getElementById("homeFriendCount");
+    if (el) el.textContent = (friends || []).length;
+  }).catch(function () {});
+
+  FriendsAPI.getRequests().then(function (reqs) {
+    var pending = reqs || [];
+    var badge = document.getElementById("friendRequestBadge");
+    if (badge && pending.length) { badge.style.display = ""; badge.textContent = pending.length; }
+
+    /* show pending section on home */
+    if (pending.length) {
+      var sec = document.getElementById("homePendingSection");
+      if (sec) sec.style.display = "";
+      var list = document.getElementById("homePendingList");
+      if (list) {
+        list.innerHTML = "";
+        pending.forEach(function (item) {
+          var u = item.user || {};
+          var name = ((u.firstName || "") + " " + (u.lastName || "")).trim() || u.username || "Member";
+          var div = document.createElement("div");
+          div.className = "pwc-social-pending-item";
+          div.innerHTML =
+            '<span class="pwc-social-pending-name">' + name + '</span>' +
+            '<div class="pwc-social-pending-actions">' +
+              '<button class="pwc-btn pwc-btn-fill" style="padding:0.25rem 0.7rem;font-size:0.82rem;" data-uid="' + u.id + '" data-action="accept">Accept</button>' +
+              '<button class="pwc-btn pwc-btn-border" style="padding:0.25rem 0.7rem;font-size:0.82rem;" data-uid="' + u.id + '" data-action="decline">Decline</button>' +
+            '</div>';
+          div.querySelectorAll("button[data-action]").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+              var uid = parseInt(btn.dataset.uid, 10);
+              var action = btn.dataset.action;
+              var fn = action === "accept" ? FriendsAPI.accept : FriendsAPI.decline;
+              fn(uid).then(function () { div.remove(); }).catch(function () {});
+            });
+          });
+          list.appendChild(div);
+        });
+      }
+    }
+  }).catch(function () {});
+
+  /* Unread messages */
+  FriendsAPI.getUnreadCount().then(function (data) {
+    var n = data.unread || 0;
+    var badge = document.getElementById("unreadBadge");
+    if (badge && n > 0) { badge.style.display = ""; badge.textContent = n > 99 ? "99+" : String(n); }
+    var el = document.getElementById("homeUnreadCount");
+    if (el) el.textContent = n;
+  }).catch(function () {});
+
+  /* My groups */
+  if (window.GroupAPI) {
+    GroupAPI.getMyGroups().then(function (groups) {
+      var g = groups || [];
+      var countEl = document.getElementById("homeGroupCount");
+      if (countEl) countEl.textContent = g.length;
+      var listEl  = document.getElementById("homeGroupsList");
+      if (listEl) {
+        if (!g.length) {
+          listEl.innerHTML = '<span style="color:var(--pwc-muted);font-size:0.9rem;">You haven\'t joined any groups yet.</span>';
+        } else {
+          listEl.innerHTML = "";
+          g.forEach(function (grp) {
+            var chip = document.createElement("button");
+            chip.className = "pwc-social-group-chip";
+            chip.textContent = grp.name;
+            chip.addEventListener("click", function () { switchView("groups"); });
+            listEl.appendChild(chip);
+          });
+        }
+      }
+    }).catch(function () {});
+  }
+
+  /* Upcoming events count */
+  fetch(API_BASE + "/api/events/?upcoming=true", { credentials: "include" })
+    .then(function (r) { return r.ok ? r.json() : []; })
+    .then(function (events) {
+      var el = document.getElementById("homeEventCount");
+      if (el) el.textContent = (events || []).length;
+    }).catch(function () {});
+
+  /* ML recommendations */
+  var mlBtn = document.getElementById("pwcMlRecBtn");
+  var mlMsg = document.getElementById("pwcMlRecMsg");
+  var mlOut = document.getElementById("pwcMlRecOutput");
+  if (mlBtn) {
+    mlBtn.addEventListener("click", function () {
+      mlBtn.disabled = true;
+      if (mlMsg) mlMsg.textContent = "Running…";
+      fetch(API_BASE + "/api/profile/recommend", { method: "POST", credentials: "include" })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (mlMsg) mlMsg.textContent = "";
+          if (!mlOut) return;
+          mlOut.hidden = false;
+          var recs = data.recommendations || [];
+          if (!recs.length) { mlOut.textContent = "No recommendations at this time."; return; }
+          mlOut.innerHTML = recs.map(function (r) {
+            return '<div class="pwc-ml-rec-item"><strong>' + (r.type || "") + ':</strong> ' + (r.name || "") + (r.score ? ' <span class="pwc-ml-rec-score">(' + (r.score * 100).toFixed(0) + '% match)</span>' : "") + '</div>';
+          }).join("");
+        })
+        .catch(function () { if (mlMsg) mlMsg.textContent = "Could not run recommendations."; })
+        .finally(function () { mlBtn.disabled = false; });
+    });
+  }
+
+  /* ── Events calendar (lazy init) ─────────────────────────── */
+  window.initSocialCalendar = (function () {
+    var calendarInstance = null;
+    var eventsAPIBase = (window.PWC_API_BASE_URL || "").replace(/\/$/, "");
+    var myGroupIds = [], selectedGroupFilter = "", allGroupsCache = [], authCache = { status: "unknown", user: null };
+
+    function pad2(n) { return String(n).padStart(2, "0"); }
+    function toDatetimeLocalValue(d) { return d.getFullYear() + "-" + pad2(d.getMonth()+1) + "-" + pad2(d.getDate()) + "T" + pad2(d.getHours()) + ":" + pad2(d.getMinutes()); }
+    function formatLocalDateTime(d) { try { return d.toLocaleString(undefined, { weekday:"long", month:"long", day:"numeric", year:"numeric", hour:"numeric", minute:"2-digit" }); } catch(e) { return d.toString(); } }
+    function formatLocalDate(d) { try { return d.toLocaleDateString(undefined, { weekday:"long", month:"long", day:"numeric", year:"numeric" }); } catch(e) { return d.toString(); } }
+
+    function apiUrl(path) { return eventsAPIBase ? eventsAPIBase + path : ""; }
+    function $(id) { return document.getElementById(id); }
+
+    async function getCurrentUser() {
+      if (!eventsAPIBase) return null;
+      if (authCache.status === "done") return authCache.user;
+      try {
+        var resp = await fetch(apiUrl("/api/auth/me"), { credentials:"include" });
+        authCache.user = resp.ok ? await resp.json() : null;
+        authCache.status = "done";
+        return authCache.user;
+      } catch(e) { return null; }
+    }
+    function isAdminUser(u) { return !!(u && String(u.role||"").toLowerCase()==="admin"); }
+    function displayNameFromUser(u) { if (!u) return ""; var full = ((u.firstName||u.first_name||"").trim()+" "+(u.lastName||u.last_name||"").trim()).trim(); return full||u.username||u.email||""; }
+
+    function capacityColor(r) {
+      r = Number(r||0);
+      if (r >= 1)   return { bg:"rgba(168,69,86,0.55)",   border:"rgba(168,69,86,0.95)"   };
+      if (r >= 0.8) return { bg:"rgba(182,84,96,0.50)",   border:"rgba(182,84,96,0.92)"   };
+      if (r >= 0.6) return { bg:"rgba(196,120,138,0.45)", border:"rgba(196,120,138,0.88)" };
+      if (r >= 0.4) return { bg:"rgba(186,148,112,0.40)", border:"rgba(186,148,112,0.85)" };
+      if (r >= 0.2) return { bg:"rgba(158,156,112,0.35)", border:"rgba(158,156,112,0.85)" };
+      return { bg:"rgba(122,142,107,0.28)", border:"rgba(122,142,107,0.85)" };
+    }
+
+    function secondTuesday(year, m) {
+      var first = new Date(year, m, 1);
+      var offset = (2 - first.getDay() + 7) % 7;
+      return new Date(year, m, 1 + offset + 7);
+    }
+
+    function buildRegularMeetings() {
+      var now = new Date(), meetings = [];
+      for (var y = now.getFullYear(); y <= now.getFullYear()+1; y++) {
+        for (var m = 0; m < 12; m++) {
+          if (!(m >= 8 || m <= 5)) continue;
+          var dt = secondTuesday(y, m); dt.setHours(10,0,0,0);
+          if (dt < now) continue;
+          var end = new Date(dt.getTime() + 2*60*60*1000);
+          meetings.push({ title:"General Meeting — "+dt.toLocaleString(undefined,{month:"long"}), start:dt, end:end, allDay:false, backgroundColor:"rgba(196,120,138,0.30)", borderColor:"rgba(196,120,138,0.90)", textColor:"#fbf8f6", extendedProps:{ backendEventId:"", location:"Templars Hall, Old Poway Park" } });
+        }
+      }
+      return meetings;
+    }
+
+    async function loadBackendEvents() {
+      if (!eventsAPIBase) return [];
+      try {
+        var resp = await fetch(apiUrl("/api/events/?upcoming=false"), { credentials:"include" });
+        if (!resp.ok) return [];
+        var list = await resp.json();
+        return (Array.isArray(list)?list:[]).map(function(e) {
+          var cap = capacityColor(e.fill_ratio);
+          var isGroup = !!e.group_id, isMine = isGroup && myGroupIds.indexOf(e.group_id)!==-1;
+          var bg = cap.bg, bdr = cap.border;
+          if (isGroup && isMine) { bg="rgba(201,160,112,0.45)"; bdr="rgba(201,160,112,0.92)"; }
+          else if (isGroup) { bg="rgba(196,120,138,0.22)"; bdr="rgba(196,120,138,0.70)"; }
+          return { id:e.id, title:e.group_name?e.title+" ["+e.group_name+"]":e.title, start:e.start_time, end:e.end_time, allDay:false, backgroundColor:bg, borderColor:bdr, textColor:"#fbf8f6", extendedProps:{ backendEventId:e.id, location:e.location||"", groupId:e.group_id||null, groupName:e.group_name||"", visibilityScope:e.visibility_scope||"club", visibleGroupIds:Array.isArray(e.visible_group_ids)?e.visible_group_ids:[], maxAttendees:e.max_attendees||null, seatsUsed:e.seats_used||0, fillRatio:e.fill_ratio||0, isFull:!!e.is_full } };
+        });
+      } catch(_) { return []; }
+    }
+
+    function showRsvpFeedback(msg, isError) {
+      var el = $("pwc-rsvp-feedback"); if (!el) return;
+      el.hidden=false; el.textContent=msg;
+      if (isError) { el.style.background="rgba(196,120,138,0.25)"; el.style.borderColor="rgba(196,120,138,0.55)"; }
+    }
+    function clearRsvpFeedback() { var el=$("pwc-rsvp-feedback"); if(el){el.textContent="";el.hidden=true;} }
+
+    async function loadEventAttendingCount(eventId) {
+      if (!eventsAPIBase||!eventId) return null;
+      try { var r=await fetch(apiUrl("/api/events/"+eventId+"/attending-count"),{credentials:"omit"}); if(!r.ok)return null; var d=await r.json(); return typeof d.attending==="number"?d.attending:null; } catch(_){return null;}
+    }
+    async function loadAttendingCount(title, dt) {
+      if (!eventsAPIBase||!title||!dt) return null;
+      try { var r=await fetch(apiUrl("/api/events/public-rsvp-count?event_title="+encodeURIComponent(title)+"&event_datetime="+encodeURIComponent(dt)),{credentials:"omit"}); if(!r.ok)return null; var d=await r.json(); return typeof d.attending==="number"?d.attending:null; } catch(_){return null;}
+    }
+
+    async function openRsvpModal(fcEvent) {
+      var backdrop=$("pwc-rsvp-backdrop"), modal=$("pwc-rsvp-modal");
+      if (!backdrop||!modal||!fcEvent) return;
+      var start=fcEvent.start, meta=start?formatLocalDateTime(start):"";
+      var loc=(fcEvent.extendedProps&&fcEvent.extendedProps.location)||""; if(loc) meta+=" — "+loc;
+      var max=fcEvent.extendedProps?fcEvent.extendedProps.maxAttendees:null;
+      var used=fcEvent.extendedProps?fcEvent.extendedProps.seatsUsed:null;
+      if(max) meta+=" — "+(typeof used==="number"?used:"0")+"/"+max+" seats";
+      $("pwc-rsvp-title").textContent="RSVP: "+(fcEvent.title||"Meeting");
+      var baseMeta=meta; $("pwc-rsvp-meta").textContent=baseMeta;
+      var metaEl=$("pwc-rsvp-meta"); if(metaEl) metaEl.dataset.baseMeta=baseMeta;
+      var backendId=(fcEvent.extendedProps&&fcEvent.extendedProps.backendEventId)||"";
+      var setV=function(id,v){var e=$(id);if(e)e.value=v;};
+      setV("pwc-rsvp-event-id",backendId); setV("pwc-rsvp-event-title",fcEvent.title||""); setV("pwc-rsvp-event-datetime",start?start.toISOString():"");
+      var form=$("pwc-rsvp-form"); if(form) form.dataset.location=loc;
+      authCache.status="unknown"; authCache.user=null;
+      var me=await getCurrentUser();
+      var nameLabel=$("pwc-rsvp-name-label"), emailLabel=$("pwc-rsvp-email-label");
+      var banner=$("pwc-rsvp-user-banner"), userDisp=$("pwc-rsvp-user-display");
+      if(me) {
+        if(nameLabel){nameLabel.hidden=true; var ni=nameLabel.querySelector("input");if(ni)ni.removeAttribute("required");}
+        if(emailLabel){emailLabel.hidden=true; var ei=emailLabel.querySelector("input");if(ei)ei.removeAttribute("required");}
+        if(banner)banner.hidden=false; if(userDisp)userDisp.textContent=displayNameFromUser(me)||"you";
+      } else {
+        if(nameLabel){nameLabel.hidden=false; var ni2=nameLabel.querySelector("input");if(ni2)ni2.setAttribute("required","");}
+        if(emailLabel){emailLabel.hidden=false; var ei2=emailLabel.querySelector("input");if(ei2)ei2.setAttribute("required","");}
+        if(banner)banner.hidden=true;
+      }
+      var rmWrap=$("pwc-rsvp-reminder-wrap"), rmHint=$("pwc-rsvp-reminder-hint"), rmCb=$("pwc-rsvp-wants-reminder");
+      if(rmWrap)rmWrap.hidden=true; if(rmHint)rmHint.hidden=true; if(rmCb)rmCb.checked=false;
+      if(me&&backendId){
+        if(rmWrap)rmWrap.hidden=false;
+        if(rmHint){rmHint.hidden=!me.hasGoogleLinked; if(!me.hasGoogleLinked) rmHint.textContent="To receive reminders, link your Google account in Settings → Security.";}
+        fetch(apiUrl("/api/events/"+backendId),{credentials:"include"}).then(function(r){return r.ok?r.json():null;}).then(function(ev){if(rmCb&&ev&&ev.user_wants_email_reminder)rmCb.checked=true;});
+      }
+      backdrop.hidden=false; modal.hidden=false; modal.focus();
+      if(backendId&&start) {
+        loadEventAttendingCount(backendId).then(function(c){if(typeof c==="number"){var m=$("pwc-rsvp-meta");if(m&&m.dataset.baseMeta)m.textContent=m.dataset.baseMeta+" — "+c+" attending";}});
+      } else if(start&&fcEvent.title) {
+        loadAttendingCount(fcEvent.title,start.toISOString()).then(function(c){if(typeof c==="number"){var m=$("pwc-rsvp-meta");if(m&&m.dataset.baseMeta)m.textContent=m.dataset.baseMeta+" — "+c+" attending";}});
+      }
+    }
+
+    function closeRsvpModal() { var b=$("pwc-rsvp-backdrop"),m=$("pwc-rsvp-modal"); if(b)b.hidden=true; if(m)m.hidden=true; }
+    function closeMeetingModal() { var b=$("pwc-meeting-modal-backdrop"),m=$("pwc-meeting-modal"); if(b)b.hidden=true; if(m)m.hidden=true; }
+
+    function openMeetingModal(selectedDate) {
+      var backdrop=$("pwc-meeting-modal-backdrop"), modal=$("pwc-meeting-modal");
+      if(!backdrop||!modal) return;
+      var meta=selectedDate?formatLocalDate(selectedDate):"";
+      $("pwc-meeting-modal-meta").textContent=meta?"Selected: "+meta:"";
+      var dt=selectedDate?new Date(selectedDate):new Date(); dt.setHours(10,0,0,0);
+      var dtEnd=new Date(dt.getTime()+2*60*60*1000);
+      var form=$("pwc-meeting-modal-form");
+      if(form&&form.elements["preferred_datetime"]) form.elements["preferred_datetime"].value=toDatetimeLocalValue(dt);
+      if(form&&form.elements["preferred_end_datetime"]) form.elements["preferred_end_datetime"].value=toDatetimeLocalValue(dtEnd);
+      getCurrentUser().then(function(me) {
+        if(!form) return;
+        var nameIn=form.elements["name"], emailIn=form.elements["email"];
+        var scopeLabel=$("pwc-meeting-visibility-scope-label"), groupsLabel=$("pwc-meeting-visible-groups-label");
+        var scopeSel=form.elements["visibility_scope"];
+        if(me) {
+          if(nameIn){nameIn.value=displayNameFromUser(me)||"Member";nameIn.required=false;if(nameIn.parentElement)nameIn.parentElement.hidden=true;}
+          if(emailIn){emailIn.value=me.email||"";emailIn.required=false;if(emailIn.parentElement)emailIn.parentElement.hidden=true;}
+          if(isAdminUser(me)){if(scopeLabel)scopeLabel.hidden=false;if(scopeSel)scopeSel.onchange=function(){if(groupsLabel)groupsLabel.hidden=scopeSel.value!=="groups";};}
+          else{if(scopeLabel)scopeLabel.hidden=true;if(groupsLabel)groupsLabel.hidden=true;}
+        } else {
+          if(nameIn){nameIn.required=true;if(nameIn.parentElement)nameIn.parentElement.hidden=false;}
+          if(emailIn){emailIn.required=true;if(emailIn.parentElement)emailIn.parentElement.hidden=false;}
+          if(scopeLabel)scopeLabel.hidden=true;if(groupsLabel)groupsLabel.hidden=true;
+        }
+      });
+      if($("pwc-meeting-modal-feedback")){$("pwc-meeting-modal-feedback").hidden=true;$("pwc-meeting-modal-feedback").textContent="";}
+      backdrop.hidden=false; modal.hidden=false; modal.focus();
+    }
+
+    function initRsvpForm() {
+      var form=$("pwc-rsvp-form");
+      if(!form) return;
+      var closeBtn=$("pwc-rsvp-close"), backdrop=$("pwc-rsvp-backdrop");
+      if(closeBtn) closeBtn.addEventListener("click", closeRsvpModal);
+      if(backdrop) backdrop.addEventListener("click", closeRsvpModal);
+      form.addEventListener("submit", async function(e) {
+        e.preventDefault(); clearRsvpFeedback();
+        if(!eventsAPIBase){showRsvpFeedback("RSVP API not configured.",true);return;}
+        var backendId=$("pwc-rsvp-event-id").value||"";
+        var attendance=form.elements["attendance"].value;
+        if(backendId) {
+          var me=await getCurrentUser();
+          if(me) {
+            try {
+              var endpoint=apiUrl("/api/events/"+backendId+"/rsvp"), resp=null;
+              if(attendance==="yes"){var cb=$("pwc-rsvp-wants-reminder");resp=await fetch(endpoint,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({wants_email_reminder:cb?!!cb.checked:false})});}
+              else{resp=await fetch(endpoint,{method:"DELETE",credentials:"include"});}
+              var data={}; try{data=await resp.json();}catch(_){}
+              if(!resp.ok){showRsvpFeedback(data.error||"Failed to submit RSVP.",true);return;}
+              showRsvpFeedback("Thanks! Your RSVP was submitted.",false);
+              loadEventAttendingCount(backendId).then(function(c){if(typeof c==="number"){var m=$("pwc-rsvp-meta");if(m&&m.dataset.baseMeta)m.textContent=m.dataset.baseMeta+" — "+c+" attending";}});
+              return;
+            } catch(err){showRsvpFeedback(err.message||"Failed to submit RSVP.",true);return;}
+          }
+        }
+        var me2=await getCurrentUser();
+        var payload={event_id:$("pwc-rsvp-event-id").value||null,event_title:$("pwc-rsvp-event-title").value||"",event_datetime:$("pwc-rsvp-event-datetime").value||"",name:me2?displayNameFromUser(me2):form.elements["name"].value,email:me2?(me2.email||""):form.elements["email"].value,attendance:attendance,notes:form.elements["notes"].value||null,event_location:form.dataset.location||null};
+        var r2=await fetch(apiUrl("/api/events/public-rsvp"),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+        var d2={}; try{d2=await r2.json();}catch(_){}
+        if(!r2.ok){showRsvpFeedback(d2.error||"Failed to submit RSVP.",true);return;}
+        showRsvpFeedback("Thanks! Your RSVP was submitted.",false);
+      });
+    }
+
+    function initMeetingForm() {
+      var form=$("pwc-meeting-modal-form");
+      var closeBtn=$("pwc-meeting-modal-close"), backdrop=$("pwc-meeting-modal-backdrop");
+      if(closeBtn) closeBtn.addEventListener("click",closeMeetingModal);
+      if(backdrop) backdrop.addEventListener("click",closeMeetingModal);
+      if(!form) return;
+      form.addEventListener("submit", async function(e) {
+        e.preventDefault();
+        var fb=$("pwc-meeting-modal-feedback"); if(fb){fb.hidden=true;fb.textContent="";}
+        if(!eventsAPIBase){if(fb){fb.hidden=false;fb.textContent="Meeting scheduling API not configured.";} return;}
+        var me=await getCurrentUser();
+        var payload={name:me?displayNameFromUser(me)||"Member":form.elements["name"].value,email:me?me.email||"":form.elements["email"].value,preferred_datetime:form.elements["preferred_datetime"].value||null,preferred_end_datetime:form.elements["preferred_end_datetime"].value||null,max_attendees:form.elements["max_attendees"]?form.elements["max_attendees"].value||null:null,visibility_scope:"club",visible_group_ids:[],topic:form.elements["topic"].value,description:form.elements["description"].value};
+        try {
+          var r=await fetch(apiUrl("/api/events/meeting-request"),{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+          var d={}; try{d=await r.json();}catch(_){}
+          if(!r.ok){if(fb){fb.hidden=false;fb.textContent=d.error||"Failed to submit meeting request.";}return;}
+          if(fb){fb.hidden=false;fb.textContent="Thanks! Your meeting request was submitted.";} form.reset(); closeMeetingModal();
+          if(calendarInstance&&calendarInstance.refetchEvents) calendarInstance.refetchEvents();
+        } catch(err){if(fb){fb.hidden=false;fb.textContent=err.message||"Network error.";}}
+      });
+    }
+
+    function initGroupFilter() {
+      getCurrentUser().then(function(me) {
+        if(!me||!eventsAPIBase) return;
+        fetch(apiUrl("/api/groups/my"),{credentials:"include"}).then(function(r){return r.ok?r.json():[];}).then(function(groups) {
+          myGroupIds=groups.map(function(g){return g.id;});
+          if(!groups.length) return;
+          var bar=$("pwc-events-group-filter"), sel=$("pwc-events-group-select");
+          if(!bar||!sel) return;
+          bar.style.display="flex";
+          groups.forEach(function(g){var o=document.createElement("option");o.value=String(g.id);o.textContent=g.name;sel.appendChild(o);});
+          sel.addEventListener("change",function(){selectedGroupFilter=sel.value;if(calendarInstance&&calendarInstance.refetchEvents)calendarInstance.refetchEvents();});
+        }).catch(function(){});
+      });
+    }
+
+    function initCalendar() {
+      var el=$("pwc-events-calendar");
+      if(!el||!window.FullCalendar) return;
+      var calendar=new FullCalendar.Calendar(el,{
+        initialView:"dayGridMonth", height:"auto", contentHeight:"auto", expandRows:true, fixedWeekCount:false,
+        dayMaxEventRows:5, eventDisplay:"block",
+        headerToolbar:{left:"prev,next today",center:"title",right:"dayGridMonth,timeGridWeek"},
+        selectable:false, editable:false, eventTimeFormat:{hour:"numeric",minute:"2-digit"},
+        dateClick:function(info){openMeetingModal(info.date);},
+        eventClick:function(info){info.jsEvent.preventDefault();openRsvpModal(info.event);},
+        events:function(info,success,fail){
+          var base=buildRegularMeetings();
+          loadBackendEvents().then(function(apiEvents){
+            var filtered=selectedGroupFilter?apiEvents.filter(function(ev){var s=(ev.extendedProps&&ev.extendedProps.visibilityScope)||"club";if(s!=="groups")return false;if(String((ev.extendedProps&&ev.extendedProps.groupId)||"")=== selectedGroupFilter)return true;var vis=(ev.extendedProps&&ev.extendedProps.visibleGroupIds)||[];return vis.map(String).indexOf(selectedGroupFilter)!==-1;}):apiEvents.filter(function(ev){return((ev.extendedProps&&ev.extendedProps.visibilityScope)||"club")!=="groups";});
+            success(base.concat(filtered));
+          }).catch(function(){success(base);});
+        }
+      });
+      calendar.render();
+      calendarInstance=calendar;
+    }
+
+    document.addEventListener("keydown", function(e) {
+      if(e.key!=="Escape") return;
+      var mm=$("pwc-meeting-modal"); if(mm&&!mm.hidden){closeMeetingModal();return;}
+      closeRsvpModal();
+    });
+
+    return function initSocialCalendar() {
+      initRsvpForm();
+      initMeetingForm();
+      initGroupFilter();
+      initCalendar();
+    };
+  })();
+
+})();
+</script>

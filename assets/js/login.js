@@ -19,7 +19,7 @@
 
   var BASE = '/pwc';
   var API_BASE_URL = (window.PWC_API_BASE_URL || 'http://localhost:8327').replace(/\/$/, '');
-  var REDIRECT_AFTER_LOGIN = BASE + '/navigation/profile';
+  var REDIRECT_AFTER_LOGIN = BASE + '/navigation/social';
 
   /* ── Helpers ─────────────────────────────────────────────────── */
 

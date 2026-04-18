@@ -23,15 +23,15 @@
             <a class="page-link" href="{{ my_page.url | relative_url }}">{{ my_page.title | escape }}</a>
             {%- endif -%}
           {%- endfor -%}
-          <a class="page-link" id="pwc-auth-link" href="{{ "/navigation/login" | relative_url }}">Login</a>
+          <a class="page-link" id="pwc-auth-link" href="{{ "/navigation/settings" | relative_url }}">Settings</a>
           <script>
           (function(){
             var u = null;
             try { u = JSON.parse(sessionStorage.getItem('pwc_user')); } catch(_){}
             if (u) {
               var a = document.getElementById('pwc-auth-link');
-              a.href = '{{ "/navigation/profile" | relative_url }}';
-              a.textContent = u.firstName || u.username || 'Profile';
+              a.href = '{{ "/navigation/social" | relative_url }}';
+              a.textContent = u.firstName || u.username || 'Social';
             }
           })();
           </script>
