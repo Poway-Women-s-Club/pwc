@@ -201,7 +201,9 @@ body {
 .page-content > .wrapper:has(#pwc-profile-app),
 .page-content > .wrapper:has(#pwc-auth-gate),
 .page-content > .wrapper:has(.pwc-login-page),
-.page-content > .wrapper:has(.events-full-width) {
+.page-content > .wrapper:has(.events-full-width),
+.page-content > .wrapper:has(#pwc-social-app),
+.page-content > .wrapper:has(#pwc-social-gate) {
   max-width: none !important;
   width: 100% !important;
   padding-left: 0;
@@ -222,6 +224,13 @@ body {
 .page-content:has(#pwc-profile-app) {
   padding-top: 0;
   padding-bottom: 0;
+}
+
+/* Social page: full-viewport, no page scroll */
+.page-content:has(#pwc-social-app),
+.page-content:has(#pwc-social-gate) {
+  padding: 0;
+  overflow: hidden;
 }
 
 /* ─── Content pages (About, Blog, Contact) ────────────────────────────── */

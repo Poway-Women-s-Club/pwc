@@ -460,13 +460,25 @@ show_reading_time: false
 
 <!-- Social page styles -->
 <style>
+/* ── Full-viewport social app ──────────────────────────── */
+#pwc-social-app {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 56px); /* 56px = site header */
+  overflow: hidden;
+}
+
 /* ── Panel grid layout ─────────────────────────────────── */
 .pwc-panel-grid {
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  padding: 0.75rem 1rem 2rem;
-  align-items: flex-start;
+  padding: 0.75rem 1rem;
+  align-items: stretch;
+  align-content: flex-start;
+  overflow-y: auto;
 }
 
 .pwc-panel {
@@ -480,6 +492,7 @@ show_reading_time: false
   flex-direction: column;
   box-shadow: 0 1px 4px rgba(0,0,0,0.07);
   overflow: hidden;
+  min-height: 0;
 }
 .pwc-panel.open { display: flex; }
 
@@ -533,6 +546,7 @@ show_reading_time: false
   flex: 1;
   overflow-y: auto;
   min-height: 0;
+  overscroll-behavior: contain;
 }
 
 /* Messages panel needs a fixed height so the DM layout works */
