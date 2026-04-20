@@ -185,6 +185,13 @@ show_reading_time: false
               <input type="text" id="blog-search" class="pwc-blog-search" placeholder="Search posts..." autocomplete="off">
             </div>
             <div class="pwc-blog-filters">
+              <select id="blog-filter-sort" class="pwc-blog-select">
+                <option value="newest">Newest</option>
+                <option value="oldest">Oldest</option>
+                <option value="popular">Most Popular</option>
+                <option value="az">A → Z</option>
+                <option value="za">Z → A</option>
+              </select>
               <select id="blog-filter-author" class="pwc-blog-select"><option value="">All Authors</option></select>
               <button class="pwc-blog-filter-btn" id="blog-filter-pinned" title="Show pinned only">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L12 12 M12 12 L17 7 M12 12 L7 7 M5 22 L19 22 M12 12 L12 22"/></svg>

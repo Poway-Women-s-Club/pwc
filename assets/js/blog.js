@@ -12,6 +12,7 @@ var Blog = (function () {
   var currentPage   = 1;
   var currentSearch = "";
   var currentAuthor = "";
+  var currentSort   = "newest";
   var pinnedOnly    = false;
   var debounceTimer = null;
   var authors       = [];
@@ -64,6 +65,15 @@ var Blog = (function () {
       });
     }
 
+    var sortSelect = document.getElementById("blog-filter-sort");
+    if (sortSelect) {
+      sortSelect.addEventListener("change", function () {
+        currentSort = sortSelect.value;
+        currentPage = 1;
+        loadPosts();
+      });
+    }
+
     var authorSelect = document.getElementById("blog-filter-author");
     if (authorSelect) {
       authorSelect.addEventListener("change", function () {
@@ -90,6 +100,7 @@ var Blog = (function () {
     var params = new URLSearchParams();
     params.set("page",     currentPage);
     params.set("per_page", "10");
+    params.set("sort",     currentSort);
     if (currentSearch) params.set("search", currentSearch);
     if (currentAuthor) params.set("author", currentAuthor);
     if (pinnedOnly)    params.set("pinned", "true");
