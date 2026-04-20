@@ -94,6 +94,23 @@ var Blog = (function () {
     }
   }
 
+  /* ── Client-side sort ───────────────────────────────────────────────── */
+
+  function sortPosts(posts, sortKey) {
+    var pinned   = posts.filter(function (p) { return p.is_pinned; });
+    var unpinned = posts.filter(function (p) { return !p.is_pinned; });
+
+    function cmp(a, b) {
+      if (sortKey === "oldest")  return a.created_at < b.created_at ? -1 : a.created_at > b.created_at ? 1 : 0;
+      if (sortKey === "popular") return (b.comment_count || 0) - (a.comment_count || 0);
+      if (sortKey === "az")      return a.title.localeCompare(b.title);
+      if (sortKey === "za")      return b.title.localeCompare(a.title);
+      /* newest (default) */    return a.created_at > b.created_at ? -1 : a.created_at < b.created_at ? 1 : 0;
+    }
+
+    return pinned.concat(unpinned.sort(cmp));
+  }
+
   /* ── Load posts ──────────────────────────────────────────────────────── */
 
   function loadPosts() {
@@ -109,7 +126,8 @@ var Blog = (function () {
 
     BlogAPI.getPosts(params)
       .then(function (data) {
-        BlogRenderer.renderPosts(data.posts, currentUser);
+        var sorted = sortPosts(data.posts, currentSort);
+        BlogRenderer.renderPosts(sorted, currentUser);
         BlogRenderer.renderPagination(data.page, data.pages);
         collectAuthors(data.posts);
         if (currentUser) fetchFriendStatuses(data.posts);
