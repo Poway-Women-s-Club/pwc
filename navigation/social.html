@@ -1343,6 +1343,75 @@ show_reading_time: false
     function isAdminUser(u) { return !!(u && String(u.role||"").toLowerCase()==="admin"); }
     function displayNameFromUser(u) { if (!u) return ""; var full = ((u.firstName||u.first_name||"").trim()+" "+(u.lastName||u.last_name||"").trim()).trim(); return full||u.username||u.email||""; }
 
+    function getCheckedGroupIds() {
+      var list = $("pwc-meeting-visible-groups-list");
+      if (!list) return [];
+      var checked = list.querySelectorAll("input[type='checkbox'][data-group-id]:checked");
+      var ids = [];
+      checked.forEach(function (el) {
+        var n = parseInt(el.getAttribute("data-group-id"), 10);
+        if (isFinite(n) && n > 0) ids.push(n);
+      });
+      return ids;
+    }
+
+    function renderVisibilityGroupOptions(groups, preselectedIds) {
+      var list = $("pwc-meeting-visible-groups-list");
+      if (!list) return;
+      list.innerHTML = "";
+      var selectedSet = {};
+      (preselectedIds || []).forEach(function (id) { selectedSet[String(id)] = true; });
+      (groups || []).forEach(function (g) {
+        var row = document.createElement("label");
+        row.style.display = "flex";
+        row.style.alignItems = "center";
+        row.style.gap = "0.45rem";
+        row.style.margin = "0.2rem 0";
+        row.style.fontSize = "0.9rem";
+        row.style.cursor = "pointer";
+        row.style.color = "rgba(255,255,255,0.92)";
+
+        var cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.setAttribute("data-group-id", String(g.id));
+        cb.style.width = "auto";
+        cb.style.minWidth = "auto";
+        cb.style.flex = "0 0 auto";
+        cb.style.margin = "0";
+        if (selectedSet[String(g.id)]) cb.checked = true;
+
+        row.appendChild(cb);
+        row.appendChild(document.createTextNode(g.name));
+        list.appendChild(row);
+      });
+      if (!(groups || []).length) {
+        list.innerHTML = '<p class="pwc-meeting-groups-empty" style="margin:0;font-size:0.85rem;color:rgba(255,255,255,0.65);">No groups available. Create a group first, or ask an admin.</p>';
+      }
+    }
+
+    async function loadAllGroups() {
+      if (!eventsAPIBase) return [];
+      if (allGroupsCache.length) return allGroupsCache;
+      try {
+        var resp = await fetch(apiUrl("/api/groups/"), { credentials: "include" });
+        if (!resp.ok) return [];
+        var data = await resp.json();
+        allGroupsCache = Array.isArray(data) ? data : [];
+        return allGroupsCache;
+      } catch (_) {
+        return [];
+      }
+    }
+
+    /** Admins: all groups. Members: groups they belong to (same endpoint as the calendar filter). */
+    function loadGroupsForMeetingModal(me) {
+      if (!eventsAPIBase) return Promise.resolve([]);
+      if (me && isAdminUser(me)) return loadAllGroups();
+      return fetch(apiUrl("/api/groups/my"), { credentials: "include" })
+        .then(function (r) { return r.ok ? r.json() : []; })
+        .then(function (data) { return Array.isArray(data) ? data : []; });
+    }
+
     function capacityColor(r) {
       r = Number(r||0);
       if (r >= 1)   return { bg:"rgba(168,69,86,0.55)",   border:"rgba(168,69,86,0.95)"   };
@@ -1453,33 +1522,85 @@ show_reading_time: false
     function closeMeetingModal() { var b=$("pwc-meeting-modal-backdrop"),m=$("pwc-meeting-modal"); if(b)b.hidden=true; if(m)m.hidden=true; }
 
     function openMeetingModal(selectedDate) {
-      var backdrop=$("pwc-meeting-modal-backdrop"), modal=$("pwc-meeting-modal");
-      if(!backdrop||!modal) return;
-      var meta=selectedDate?formatLocalDate(selectedDate):"";
-      $("pwc-meeting-modal-meta").textContent=meta?"Selected: "+meta:"";
-      var dt=selectedDate?new Date(selectedDate):new Date(); dt.setHours(10,0,0,0);
-      var dtEnd=new Date(dt.getTime()+2*60*60*1000);
-      var form=$("pwc-meeting-modal-form");
-      if(form&&form.elements["preferred_datetime"]) form.elements["preferred_datetime"].value=toDatetimeLocalValue(dt);
-      if(form&&form.elements["preferred_end_datetime"]) form.elements["preferred_end_datetime"].value=toDatetimeLocalValue(dtEnd);
-      getCurrentUser().then(function(me) {
-        if(!form) return;
-        var nameIn=form.elements["name"], emailIn=form.elements["email"];
-        var scopeLabel=$("pwc-meeting-visibility-scope-label"), groupsLabel=$("pwc-meeting-visible-groups-label");
-        var scopeSel=form.elements["visibility_scope"];
-        if(me) {
-          if(nameIn){nameIn.value=displayNameFromUser(me)||"Member";nameIn.required=false;if(nameIn.parentElement)nameIn.parentElement.hidden=true;}
-          if(emailIn){emailIn.value=me.email||"";emailIn.required=false;if(emailIn.parentElement)emailIn.parentElement.hidden=true;}
-          if(isAdminUser(me)){if(scopeLabel)scopeLabel.hidden=false;if(scopeSel)scopeSel.onchange=function(){if(groupsLabel)groupsLabel.hidden=scopeSel.value!=="groups";};}
-          else{if(scopeLabel)scopeLabel.hidden=true;if(groupsLabel)groupsLabel.hidden=true;}
+      var backdrop = $("pwc-meeting-modal-backdrop"), modal = $("pwc-meeting-modal");
+      if (!backdrop || !modal) return;
+
+      var meta = selectedDate ? formatLocalDate(selectedDate) : "";
+      $("pwc-meeting-modal-meta").textContent = meta ? ("Selected: " + meta) : "";
+
+      var dt = selectedDate ? new Date(selectedDate) : new Date();
+      dt.setHours(10, 0, 0, 0);
+      var dtEnd = new Date(dt.getTime() + 2 * 60 * 60 * 1000);
+
+      var form = $("pwc-meeting-modal-form");
+      if (form && form.elements["preferred_datetime"] && form.elements["preferred_end_datetime"]) {
+        form.elements["preferred_datetime"].value = toDatetimeLocalValue(dt);
+        form.elements["preferred_end_datetime"].value = toDatetimeLocalValue(dtEnd);
+      }
+
+      getCurrentUser().then(function (me) {
+        if (!form) return;
+        var nameInput = form.elements["name"];
+        var emailInput = form.elements["email"];
+        var scopeLabel = $("pwc-meeting-visibility-scope-label");
+        var groupsLabel = $("pwc-meeting-visible-groups-label");
+        var scopeSelect = form.elements["visibility_scope"];
+        var groupsList = $("pwc-meeting-visible-groups-list");
+
+        function syncVisibilityUi() {
+          if (!scopeSelect || !groupsLabel || !groupsList) return;
+          var isGroups = scopeSelect.value === "groups";
+          groupsLabel.hidden = !isGroups;
+          groupsList.setAttribute("data-required", isGroups ? "1" : "0");
+        }
+
+        if (me) {
+          var autoName = displayNameFromUser(me) || "Member";
+          var autoEmail = me.email || "";
+          if (nameInput) {
+            nameInput.value = autoName;
+            nameInput.required = false;
+            if (nameInput.parentElement) nameInput.parentElement.hidden = true;
+          }
+          if (emailInput) {
+            emailInput.value = autoEmail;
+            emailInput.required = false;
+            if (emailInput.parentElement) emailInput.parentElement.hidden = true;
+          }
+          if (scopeLabel) scopeLabel.hidden = false;
+          if (scopeSelect) scopeSelect.value = "club";
+          loadGroupsForMeetingModal(me).then(function (groups) {
+            renderVisibilityGroupOptions(groups, myGroupIds || []);
+            syncVisibilityUi();
+          });
+          if (scopeSelect) scopeSelect.onchange = syncVisibilityUi;
         } else {
-          if(nameIn){nameIn.required=true;if(nameIn.parentElement)nameIn.parentElement.hidden=false;}
-          if(emailIn){emailIn.required=true;if(emailIn.parentElement)emailIn.parentElement.hidden=false;}
-          if(scopeLabel)scopeLabel.hidden=true;if(groupsLabel)groupsLabel.hidden=true;
+          if (nameInput) {
+            nameInput.required = true;
+            if (nameInput.parentElement) nameInput.parentElement.hidden = false;
+          }
+          if (emailInput) {
+            emailInput.required = true;
+            if (emailInput.parentElement) emailInput.parentElement.hidden = false;
+          }
+          if (scopeLabel) scopeLabel.hidden = true;
+          if (groupsLabel) groupsLabel.hidden = true;
+          if (scopeSelect) scopeSelect.value = "club";
+          if (groupsList) {
+            groupsList.setAttribute("data-required", "0");
+            groupsList.innerHTML = "";
+          }
         }
       });
-      if($("pwc-meeting-modal-feedback")){$("pwc-meeting-modal-feedback").hidden=true;$("pwc-meeting-modal-feedback").textContent="";}
-      backdrop.hidden=false; modal.hidden=false; modal.focus();
+
+      var missing = $("pwc-meeting-modal-missing-config");
+      var feedback = $("pwc-meeting-modal-feedback");
+      if (missing) missing.hidden = true;
+      if (feedback) { feedback.hidden = true; feedback.textContent = ""; }
+
+      backdrop.hidden = false;
+      modal.hidden = false;
+      modal.focus();
     }
 
     function initRsvpForm() {
@@ -1518,24 +1639,99 @@ show_reading_time: false
     }
 
     function initMeetingForm() {
-      var form=$("pwc-meeting-modal-form");
-      var closeBtn=$("pwc-meeting-modal-close"), backdrop=$("pwc-meeting-modal-backdrop");
-      if(closeBtn) closeBtn.addEventListener("click",closeMeetingModal);
-      if(backdrop) backdrop.addEventListener("click",closeMeetingModal);
-      if(!form) return;
-      form.addEventListener("submit", async function(e) {
+      var meetingModalForm = $("pwc-meeting-modal-form");
+      var meetingModalMissing = $("pwc-meeting-modal-missing-config");
+      var meetingModalFeedback = $("pwc-meeting-modal-feedback");
+      var closeBtn = $("pwc-meeting-modal-close"), backdrop = $("pwc-meeting-modal-backdrop");
+      if (closeBtn) closeBtn.addEventListener("click", closeMeetingModal);
+      if (backdrop) backdrop.addEventListener("click", closeMeetingModal);
+      if (!meetingModalForm) return;
+      meetingModalForm.addEventListener("submit", async function (e) {
         e.preventDefault();
-        var fb=$("pwc-meeting-modal-feedback"); if(fb){fb.hidden=true;fb.textContent="";}
-        if(!eventsAPIBase){if(fb){fb.hidden=false;fb.textContent="Meeting scheduling API not configured.";} return;}
-        var me=await getCurrentUser();
-        var payload={name:me?displayNameFromUser(me)||"Member":form.elements["name"].value,email:me?me.email||"":form.elements["email"].value,preferred_datetime:form.elements["preferred_datetime"].value||null,preferred_end_datetime:form.elements["preferred_end_datetime"].value||null,max_attendees:form.elements["max_attendees"]?form.elements["max_attendees"].value||null:null,visibility_scope:"club",visible_group_ids:[],topic:form.elements["topic"].value,description:form.elements["description"].value};
+
+        if (meetingModalMissing) meetingModalMissing.hidden = true;
+        if (meetingModalFeedback) {
+          meetingModalFeedback.textContent = "";
+          meetingModalFeedback.hidden = true;
+        }
+
+        if (!eventsAPIBase) {
+          if (meetingModalMissing) meetingModalMissing.hidden = false;
+          if (meetingModalFeedback) {
+            meetingModalFeedback.hidden = false;
+            meetingModalFeedback.textContent = "Meeting scheduling API is not configured yet.";
+          }
+          return;
+        }
+
+        var meSched = await getCurrentUser();
+        var scopeVal = "club";
+        var visibleGroupIds = [];
+        if (meSched) {
+          scopeVal = meetingModalForm.elements["visibility_scope"]
+            ? (meetingModalForm.elements["visibility_scope"].value || "club")
+            : "club";
+          visibleGroupIds = getCheckedGroupIds();
+          if (scopeVal === "groups" && !visibleGroupIds.length) {
+            if (meetingModalFeedback) {
+              meetingModalFeedback.hidden = false;
+              meetingModalFeedback.textContent = "Select at least one group for group-only visibility.";
+            }
+            return;
+          }
+        }
+        var payload = {
+          name: meSched ? (displayNameFromUser(meSched) || "Member") : meetingModalForm.elements["name"].value,
+          email: meSched ? (meSched.email || "") : meetingModalForm.elements["email"].value,
+          preferred_datetime: meetingModalForm.elements["preferred_datetime"].value || null,
+          preferred_end_datetime: meetingModalForm.elements["preferred_end_datetime"].value || null,
+          max_attendees: meetingModalForm.elements["max_attendees"] ? (meetingModalForm.elements["max_attendees"].value || null) : null,
+          visibility_scope: scopeVal,
+          visible_group_ids: visibleGroupIds,
+          topic: meetingModalForm.elements["topic"].value,
+          description: meetingModalForm.elements["description"].value
+        };
+
         try {
-          var r=await fetch(apiUrl("/api/events/meeting-request"),{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
-          var d={}; try{d=await r.json();}catch(_){}
-          if(!r.ok){if(fb){fb.hidden=false;fb.textContent=d.error||"Failed to submit meeting request.";}return;}
-          if(fb){fb.hidden=false;fb.textContent="Thanks! Your meeting request was submitted.";} form.reset(); closeMeetingModal();
-          if(calendarInstance&&calendarInstance.refetchEvents) calendarInstance.refetchEvents();
-        } catch(err){if(fb){fb.hidden=false;fb.textContent=err.message||"Network error.";}}
+          var resp = await fetch(apiUrl("/api/events/meeting-request"), {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+
+          var data = {};
+          try { data = await resp.json(); } catch (err) { data = {}; }
+
+          if (!resp.ok) {
+            var msg = (data && data.error) ? data.error : "Failed to submit meeting request.";
+            if (meetingModalFeedback) {
+              meetingModalFeedback.hidden = false;
+              meetingModalFeedback.textContent = msg;
+            }
+            return;
+          }
+
+          if (meetingModalFeedback) {
+            meetingModalFeedback.hidden = false;
+            meetingModalFeedback.textContent = "Thanks! Your meeting request was submitted.";
+          }
+          meetingModalForm.reset();
+          closeMeetingModal();
+
+          if (calendarInstance && calendarInstance.refetchEvents) {
+            calendarInstance.refetchEvents();
+          }
+        } catch (err) {
+          if (meetingModalFeedback) {
+            meetingModalFeedback.hidden = false;
+            var msg = (err && err.message) ? err.message : String(err);
+            var endpoint = "";
+            try { endpoint = apiUrl("/api/events/meeting-request"); } catch (e2) { endpoint = ""; }
+            meetingModalFeedback.textContent = "Network error submitting meeting request: " + msg + (endpoint ? (" (" + endpoint + ")") : "");
+            try { console.error("Meeting request submit failed:", err); } catch (e) { /* no-op */ }
+          }
+        }
       });
     }
 
