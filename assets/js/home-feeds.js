@@ -67,19 +67,25 @@
           return;
         }
         var sb = siteBase();
-        var html = '<ul class="pwc-home-ww-list">';
+        var viewer = null;
+        try { viewer = JSON.parse(sessionStorage.getItem("pwc_user") || "null"); } catch (e) {}
+        var html = '<div class="pwc-home-ww-grid">';
         ww.slice(0, 8).forEach(function (p) {
           var shortTitle = (p.title || "").replace(/^what we do\s*:\s*/i, "").trim() || p.title;
           var prev = (p.body || "").replace(/\s+/g, " ").trim();
           if (prev.length > 140) prev = prev.slice(0, 137) + "…";
+          var canManage = !!(viewer && (viewer.role === "admin" || String(viewer.id) === String(p.author_id)));
           html +=
-            '<li class="pwc-home-ww-item">' +
+            '<article class="pwc-home-ww-card">' +
             '<a class="pwc-home-ww-link" href="' +
             esc(sb + "/navigation/blog?post=" + p.id) +
             '">' +
             esc(shortTitle) +
             "</a>" +
             '<span class="pwc-home-ww-meta">' +
+            "By " +
+            esc(p.author || "Member") +
+            " · " +
             esc(fmtDate(p.created_at)) +
             " · " +
             (p.comment_count || 0) +
@@ -88,9 +94,14 @@
             "</span>" +
             '<p class="pwc-home-ww-preview">' +
             esc(prev) +
-            "</p></li>";
+            "</p>" +
+            '<div class="pwc-home-ww-actions">' +
+            '<a class="pwc-btn pwc-btn-border pwc-btn-sm" href="' + esc(sb + "/navigation/blog?post=" + p.id) + '">Read & comment</a>' +
+            (canManage ? ('<a class="pwc-btn pwc-btn-sage pwc-btn-sm" href="' + esc(sb + "/navigation/blog?post=" + p.id) + '">Manage post</a>') : "") +
+            "</div>" +
+            "</article>";
         });
-        html += "</ul>";
+        html += "</div>";
         el.innerHTML = html;
       })
       .catch(function () {

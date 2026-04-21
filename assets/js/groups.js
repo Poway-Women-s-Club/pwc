@@ -119,6 +119,11 @@ var Groups = (function () {
 
   /* ── Create / Edit ───────────────────────────────────────────────────── */
 
+  function setJoinPolicyHeading(text) {
+    var heading = document.getElementById("groups-join-policy-heading");
+    if (heading) heading.textContent = text;
+  }
+
   function showCreate() {
     document.getElementById("groups-compose-title").textContent = "New Group";
     document.getElementById("groups-edit-id").value             = "";
@@ -127,7 +132,7 @@ var Groups = (function () {
     document.getElementById("groups-submit-btn").textContent    = "Create Group";
     document.getElementById("groups-join-open").checked         = true;
     document.getElementById("groups-join-apply").checked        = false;
-    document.getElementById("groups-join-policy-heading").textContent = "How people join";
+    setJoinPolicyHeading("How people join");
     document.getElementById("groups-compose-overlay").style.display = "flex";
     document.body.style.overflow = "hidden";
     document.getElementById("groups-name").focus();
@@ -143,7 +148,7 @@ var Groups = (function () {
       var req = !!group.requires_application;
       document.getElementById("groups-join-open").checked  = !req;
       document.getElementById("groups-join-apply").checked = req;
-      document.getElementById("groups-join-policy-heading").textContent = "How people join";
+      setJoinPolicyHeading("How people join");
       document.getElementById("groups-compose-overlay").style.display = "flex";
       document.body.style.overflow = "hidden";
     });

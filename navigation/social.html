@@ -391,7 +391,7 @@ show_reading_time: false
         <textarea id="groups-desc" rows="4" placeholder="Describe what this group is about..."></textarea>
       </div>
       <div class="pwc-blog-field pwc-groups-join-policy">
-        <span class="pwc-groups-join-policy-label">How people join</span>
+        <span class="pwc-groups-join-policy-label" id="groups-join-policy-heading">How people join</span>
         <label class="pwc-groups-radio-row">
           <input type="radio" name="groups-join-type" value="open" id="groups-join-open" checked>
           <span>Anyone can join (open group)</span>
@@ -815,6 +815,28 @@ show_reading_time: false
     homeRoleEl.textContent = currentUser.role === "admin" ? "Admin" : (currentUser.is_active_member ? "Active Member" : "Member");
   }
 
+  /* Friends module must be initialized once so search + callbacks work */
+  if (window.ProfileFriends) {
+    ProfileFriends.init(currentUser, {
+      onMessage: function (userObj) {
+        openPanel("messages");
+        if (window.ProfileMessages && userObj && userObj.id) {
+          ProfileMessages.openConvoById(userObj.id, userObj);
+        }
+      },
+      onRequestsLoaded: function (count) {
+        var badge = document.getElementById("friendRequestBadge");
+        if (!badge) return;
+        if (count > 0) {
+          badge.style.display = "";
+          badge.textContent = String(count);
+        } else {
+          badge.style.display = "none";
+        }
+      }
+    });
+  }
+
   /* ── Panel toggle system ──────────────────────────────────── */
   var tabBtns  = document.querySelectorAll(".pwc-topbar-tab");
   var calendarReady = false;
@@ -875,7 +897,7 @@ show_reading_time: false
     }
     if (name === "friends" && !friendsReady) {
       friendsReady = true;
-      if (window.ProfileFriends) ProfileFriends.load(currentUser);
+      if (window.ProfileFriends) ProfileFriends.load();
     }
     if (name === "messages" && !messagesReady) {
       messagesReady = true;
@@ -996,6 +1018,60 @@ show_reading_time: false
   /* ── Home panel: load data ────────────────────────────────── */
   var API_BASE = (window.PWC_API_BASE_URL || "").replace(/\/$/, "");
 
+  function escRec(text) {
+    var d = document.createElement("div");
+    d.textContent = text == null ? "" : String(text);
+    return d.innerHTML;
+  }
+
+  function renderSocialRecommendations(data, outEl) {
+    if (!outEl) return;
+    var cards = [];
+
+    if (Array.isArray(data && data.recommendations) && data.recommendations.length) {
+      data.recommendations.forEach(function (r) {
+        cards.push({
+          title: (r.type || "Suggestion") + ": " + (r.name || ""),
+          score: r.score,
+          details: r.reason || ""
+        });
+      });
+    }
+
+    if (Array.isArray(data && data.groups)) {
+      data.groups.forEach(function (g) {
+        cards.push({
+          title: "Group: " + (g.name || ""),
+          score: g.score,
+          details: (g.match_terms || []).length ? ("Matched terms: " + g.match_terms.join(", ")) : ""
+        });
+      });
+    }
+
+    if (Array.isArray(data && data.events)) {
+      data.events.forEach(function (ev) {
+        cards.push({
+          title: "Event: " + (ev.title || ""),
+          score: ev.score,
+          details: ev.location || ""
+        });
+      });
+    }
+
+    if (!cards.length) {
+      outEl.textContent = "No recommendations at this time.";
+      return;
+    }
+
+    outEl.innerHTML = cards.map(function (c) {
+      var scoreHtml = (typeof c.score === "number")
+        ? (' <span class="pwc-ml-rec-score">(' + Math.round(c.score * 100) + '% match)</span>')
+        : "";
+      var detailsHtml = c.details ? ('<div class="pwc-ml-rec-meta">' + escRec(c.details) + '</div>') : "";
+      return '<div class="pwc-ml-rec-item"><strong>' + escRec(c.title) + "</strong>" + scoreHtml + detailsHtml + "</div>";
+    }).join("");
+  }
+
   /* Friends count + pending requests */
   FriendsAPI.getFriends().then(function (friends) {
     var el = document.getElementById("homeFriendCount");
@@ -1086,19 +1162,22 @@ show_reading_time: false
     mlBtn.addEventListener("click", function () {
       mlBtn.disabled = true;
       if (mlMsg) mlMsg.textContent = "Running…";
-      fetch(API_BASE + "/api/profile/recommend", { method: "POST", credentials: "include" })
-        .then(function (r) { return r.json(); })
+      var request = window.ProfileAPI && ProfileAPI.getRecommendations
+        ? ProfileAPI.getRecommendations(6, 6)
+        : fetch(API_BASE + "/api/profile/recommendations?top_groups=6&top_events=6", { credentials: "include" }).then(function (r) {
+            if (!r.ok) throw new Error("Recommendations failed");
+            return r.json();
+          });
+      request
         .then(function (data) {
           if (mlMsg) mlMsg.textContent = "";
           if (!mlOut) return;
           mlOut.hidden = false;
-          var recs = data.recommendations || [];
-          if (!recs.length) { mlOut.textContent = "No recommendations at this time."; return; }
-          mlOut.innerHTML = recs.map(function (r) {
-            return '<div class="pwc-ml-rec-item"><strong>' + (r.type || "") + ':</strong> ' + (r.name || "") + (r.score ? ' <span class="pwc-ml-rec-score">(' + (r.score * 100).toFixed(0) + '% match)</span>' : "") + '</div>';
-          }).join("");
+          renderSocialRecommendations(data || {}, mlOut);
         })
-        .catch(function () { if (mlMsg) mlMsg.textContent = "Could not run recommendations."; })
+        .catch(function (err) {
+          if (mlMsg) mlMsg.textContent = (err && err.message) ? err.message : "Could not run recommendations.";
+        })
         .finally(function () { mlBtn.disabled = false; });
     });
   }
